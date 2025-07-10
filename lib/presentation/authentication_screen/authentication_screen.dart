@@ -256,8 +256,7 @@ class AuthenticationScreen extends StatelessWidget {
       child: Center(
         child: GestureDetector(
           onTap: () {
-            // Handle create account navigation
-            print('Create account tapped');
+            Navigator.pushNamed(context, AppRoutes.accountRegistrationScreen);
           },
           child: Text(
             'Créer un compte ?',

@@ -2,95 +2,107 @@ import 'package:flutter/material.dart';
 
 import '../core/app_export.dart';
 
-/**
- * CustomButton - A flexible and reusable button component
- * 
- * This component provides a customizable button with various styling options
- * including background color, text color, dimensions, and border radius.
- * 
- * @param text - The text to display on the button
- * @param onPressed - Callback function when button is pressed
- * @param backgroundColor - Background color of the button
- * @param textColor - Color of the button text
- * @param width - Width of the button
- * @param height - Height of the button
- * @param borderRadius - Border radius of the button
- * @param fontSize - Font size of the button text
- * @param fontWeight - Font weight of the button text
- * @param isEnabled - Whether the button is enabled or disabled
- */
+/// CustomButton - Un bouton personnalisable avec support pour variantes `elevated` et `outlined`.
 class CustomButton extends StatelessWidget {
   const CustomButton({
     Key? key,
     required this.text,
     this.onPressed,
+    this.variant = CustomButtonVariant.elevated,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.width,
     this.height,
-    this.borderRadius,
     this.fontSize,
     this.fontWeight,
+    this.borderRadius,
+    this.isFullWidth = false,
     this.isEnabled = true,
   }) : super(key: key);
 
-  /// The text to display on the button
   final String text;
-
-  /// Callback function when button is pressed
   final VoidCallback? onPressed;
-
-  /// Background color of the button
+  final CustomButtonVariant variant;
   final Color? backgroundColor;
-
-  /// Color of the button text
   final Color? textColor;
-
-  /// Width of the button
+  final Color? borderColor;
   final double? width;
-
-  /// Height of the button
   final double? height;
-
-  /// Border radius of the button
-  final double? borderRadius;
-
-  /// Font size of the button text
   final double? fontSize;
-
-  /// Font weight of the button text
   final FontWeight? fontWeight;
-
-  /// Whether the button is enabled or disabled
+  final double? borderRadius;
+  final bool isFullWidth;
   final bool isEnabled;
 
-@override
+  @override
   Widget build(BuildContext context) {
+    final buttonWidth = isFullWidth ? double.infinity : (width ?? 335.h);
+    final buttonHeight = height ?? 44.h;
+    final radius = this.borderRadius ?? 8.h;
+
+    final effectiveTextStyle = TextStyle(
+      fontSize: fontSize ?? 14.fSize,
+      fontWeight: fontWeight ?? FontWeight.w600,
+      fontFamily: 'Manrope',
+      height: 1.43,
+      color: textColor,
+    );
+
+    if (variant == CustomButtonVariant.outlined) {
+      return SizedBox(
+        width: buttonWidth,
+        height: buttonHeight,
+        child: OutlinedButton(
+          onPressed: isEnabled ? onPressed : null,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: backgroundColor ?? appTheme.whiteCustom,
+            foregroundColor: textColor ?? appTheme.blackCustom,
+            side: BorderSide(
+              color: borderColor ?? appTheme.blackCustom,
+              width: 1.h,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radius),
+            ),
+            padding: EdgeInsets.zero,
+          ),
+          child: Text(
+            text,
+            style: TextStyleHelper.instance.textStyle6.copyWith(
+              color: textColor ?? appTheme.blackCustom,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Elevated variant
     return SizedBox(
-      width: width ?? 335.h,
-      height: height ?? 44.h,
+      width: buttonWidth,
+      height: buttonHeight,
       child: ElevatedButton(
         onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? appTheme.colorFF8808,
-          foregroundColor: textColor ?? appTheme.whiteCustom,
-          disabledBackgroundColor: appTheme.colorFF8808.withAlpha(128),
-          disabledForegroundColor: appTheme.whiteCustom.withAlpha(128),
+          backgroundColor: isEnabled
+              ? (backgroundColor ?? appTheme.colorFF8808)
+              : appTheme.colorFF8808.withAlpha(128),
+          foregroundColor: isEnabled
+              ? (textColor ?? appTheme.whiteCustom)
+              : appTheme.whiteCustom.withAlpha(128),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius ?? 8.h),
+            borderRadius: BorderRadius.circular(radius),
           ),
           elevation: 0,
           padding: EdgeInsets.zero,
         ).copyWith(
           overlayColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
+            (states) {
               if (states.contains(WidgetState.hovered)) {
-                return appTheme
-                    .colorFF6606; // Modified: Added missing space in return statement
+                return appTheme.colorFF6606;
               }
               if (states.contains(WidgetState.pressed)) {
-                return appTheme.colorFF6606.withAlpha(
-                    204); // Modified: Added missing space in return statement
+                return appTheme.colorFF6606.withAlpha(204);
               }
               return null;
             },
@@ -98,14 +110,18 @@ class CustomButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: TextStyle(
-            fontSize: fontSize ?? 14.fSize,
-            fontWeight: fontWeight ?? FontWeight.w600,
-            fontFamily: 'Manrope',
-            height: 1.43, // 20px / 14px = 1.43
+          style: effectiveTextStyle.copyWith(
+            color: isEnabled
+                ? (textColor ?? appTheme.whiteCustom)
+                : appTheme.whiteCustom.withAlpha(128),
           ),
         ),
       ),
     );
   }
+}
+
+enum CustomButtonVariant {
+  elevated,
+  outlined,
 }

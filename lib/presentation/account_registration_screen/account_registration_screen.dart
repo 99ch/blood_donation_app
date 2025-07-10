@@ -4,14 +4,15 @@ import '../../core/app_export.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_image_view.dart';
 import '../../widgets/custom_text_input.dart';
+import '../../routes/app_routes.dart';
 
 class AccountRegistrationScreen extends StatelessWidget {
   AccountRegistrationScreen({Key? key}) : super(key: key);
 
-  TextEditingController fullNameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   String selectedCountry = 'Bénin';
 
   @override
@@ -34,9 +35,9 @@ class AccountRegistrationScreen extends StatelessWidget {
             SizedBox(height: 24.h),
             _buildCountrySection(),
             SizedBox(height: 24.h),
-            _buildContinueButton(),
+            _buildContinueButton(context), // ✅ Correction ici
             SizedBox(height: 16.h),
-            _buildLoginLinkSection(),
+            _buildLoginLinkSection(context),
           ],
         ),
       ),
@@ -216,11 +217,11 @@ class AccountRegistrationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContinueButton() {
+  Widget _buildContinueButton(BuildContext context) { // ✅ Correction ici
     return CustomButton(
       text: 'Continuer',
       onPressed: () {
-        _handleRegistration();
+        _handleRegistration(context); // ✅ context disponible
       },
       variant: CustomButtonVariant.elevated,
       backgroundColor: appTheme.colorFF8808,
@@ -232,7 +233,7 @@ class AccountRegistrationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginLinkSection() {
+  Widget _buildLoginLinkSection(BuildContext context) {
     return Center(
       child: Padding(
         padding: EdgeInsets.only(top: 16.h),
@@ -247,7 +248,7 @@ class AccountRegistrationScreen extends StatelessWidget {
             SizedBox(height: 4.h),
             GestureDetector(
               onTap: () {
-                // Navigate to login screen
+                Navigator.pushNamed(context, AppRoutes.authenticationScreen);
               },
               child: Text(
                 'Se connecter',
@@ -262,25 +263,24 @@ class AccountRegistrationScreen extends StatelessWidget {
     );
   }
 
-  void _handleRegistration() {
-    // Validate required fields
+  void _handleRegistration(BuildContext context) {
     if (fullNameController.text.isEmpty ||
         emailController.text.isEmpty ||
         passwordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty ||
         selectedCountry.isEmpty) {
-      // Show error message
+      print('Veuillez remplir tous les champs requis.');
       return;
     }
 
-    // Validate password confirmation
     if (passwordController.text != confirmPasswordController.text) {
-      // Show error message
+      print('Les mots de passe ne correspondent pas.');
       return;
     }
 
-    // Process registration
-    print(
-        'Registration data: ${fullNameController.text}, ${emailController.text}');
+    print('Registration data: ${fullNameController.text}, ${emailController.text}');
+
+    Navigator.pushNamed(
+        context, AppRoutes.onboardingSevenEnhancedBloodDonationProfileSetup);
   }
 }

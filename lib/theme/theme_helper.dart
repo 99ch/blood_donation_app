@@ -5,8 +5,6 @@ LightCodeColors get appTheme => ThemeHelper().themeColor();
 ThemeData get theme => ThemeHelper().themeData();
 
 /// Helper class for managing themes and colors.
-
-// ignore_for_file: must_be_immutable
 class ThemeHelper {
   // A map of custom color themes supported by the app
   final Map<String, LightCodeColors> _supportedCustomColor = {
@@ -23,7 +21,7 @@ class ThemeHelper {
     _appTheme = _newTheme;
   }
 
-  /// Returns the lightCode colors for the current theme.
+  /// Returns the custom colors for the current theme.
   LightCodeColors _getThemeColors() {
     return _supportedCustomColor[_appTheme] ?? LightCodeColors();
   }
@@ -38,10 +36,7 @@ class ThemeHelper {
     );
   }
 
-  /// Returns the lightCode colors for the current theme.
   LightCodeColors themeColor() => _getThemeColors();
-
-  /// Returns the current theme data.
   ThemeData themeData() => _getThemeData();
 }
 
@@ -84,6 +79,11 @@ class LightCodeColors {
   Color get colorFFD9D9 => const Color(0xFFD9D9D9);
   Color get colorFF9A9A => const Color(0xFF9A9A9A);
   Color get colorFF4444 => const Color(0xFF444444);
+  Color get colorFFF2AB => const Color(0xFFF2ABC9);
+  Color get colorFFFF37 => const Color(0xFFFF3737);
+  Color get colorFF7373 => const Color(0xFF737373);
+  Color get colorFF0000 => const Color(0xFF000000);
+  Color get colorFF90BCFE => const Color(0xFF90BCFE); // Valeur déjà existante dans un des codes
 
   // Color Shades
   Color get grey200 => Colors.grey.shade200;
