@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_export.dart';
+import '../../core/utils/image_constant.dart';
+import '../../routes/app_routes.dart';
+import '../../theme/text_style_helper.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_image_view.dart';
 
-class OnboardingThreeScreen extends StatelessWidget {
-  OnboardingThreeScreen({Key? key}) : super(key: key);
+class OnboardingScreen extends StatelessWidget {
+  OnboardingScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,7 @@ class OnboardingThreeScreen extends StatelessWidget {
               Expanded(
                 child: _buildMainContent(context),
               ),
-              _buildBottomAction(context),
+              _buildNextButton(context),
             ],
           ),
         ),
@@ -31,7 +34,7 @@ class OnboardingThreeScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      width: double.infinity,
+      width: double.maxFinite,
       padding: EdgeInsets.only(
         top: 20.h,
         left: 20.h,
@@ -46,8 +49,7 @@ class OnboardingThreeScreen extends StatelessWidget {
             },
             child: Text(
               'Arriere',
-              style:
-                  TextStyleHelper.instance.body14Regular.copyWith(height: 1.25),
+              style: TextStyleHelper.instance.body14Regular,
             ),
           ),
         ],
@@ -56,105 +58,103 @@ class OnboardingThreeScreen extends StatelessWidget {
   }
 
   Widget _buildMainContent(BuildContext context) {
-    return Padding(
+    return Container(
+      width: double.maxFinite,
       padding: EdgeInsets.symmetric(horizontal: 20.h),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildBloodBagIllustration(context),
           SizedBox(height: 64.h),
-          _buildHeadingText(context),
-          SizedBox(height: 16.h),
-          _buildDescriptionText(context),
+          _buildIllustration(),
           SizedBox(height: 48.h),
-          _buildPageIndicator(context),
+          _buildTitle(),
+          SizedBox(height: 16.h),
+          _buildDescription(),
+          SizedBox(height: 48.h),
+          _buildPageIndicators(),
         ],
       ),
     );
   }
 
-  Widget _buildBloodBagIllustration(BuildContext context) {
+  Widget _buildIllustration() {
+    return CustomImageView(
+      imagePath: ImageConstant.imgPeopleHoldingACharityBox,
+      height: 351.h,
+      width: 289.h,
+      fit: BoxFit.contain,
+    );
+  }
+
+  Widget _buildTitle() {
     return Container(
-      margin: EdgeInsets.only(top: 48.h),
-      child: CustomImageView(
-        imagePath: ImageConstant.imgBloogBag,
-        height: 280.h,
-        width: 193.h,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
-  Widget _buildHeadingText(BuildContext context) {
-    return Text(
-      'Sauver la vie',
-      style: TextStyleHelper.instance.headline24Bold.copyWith(height: 1.33),
-      textAlign: TextAlign.center,
-    );
-  }
-
-  Widget _buildDescriptionText(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.h),
+      width: double.maxFinite,
       child: Text(
-        'sed quia non numquam eius modi tempora labore et dolore magnam aliquam.',
-        style: TextStyleHelper.instance.body14Regular.copyWith(height: 1.21),
+        'Connecter à la communauté',
+        style: TextStyleHelper.instance.headline24Bold,
         textAlign: TextAlign.center,
       ),
     );
   }
 
-  Widget _buildPageIndicator(BuildContext context) {
+  Widget _buildDescription() {
+    return Container(
+      width: double.maxFinite,
+      padding: EdgeInsets.symmetric(horizontal: 16.h),
+      child: Text(
+        'sed quia non numquam eius modi tempora labore et dolore magnam aliquam.',
+        style: TextStyleHelper.instance.body13Regular,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildPageIndicators() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 8.h,
-          height: 8.h,
+          height: 16.h,
+          width: 16.h,
           decoration: BoxDecoration(
-            color: appTheme.colorFFFBCF,
-            borderRadius: BorderRadius.circular(4.h),
+            color: appTheme.colorFFFFC8,
+            borderRadius: BorderRadius.circular(8.h),
           ),
         ),
-        SizedBox(width: 8.h),
+        SizedBox(width: 16.h),
         Container(
-          width: 24.h,
-          height: 8.h,
+          height: 16.h,
+          width: 16.h,
           decoration: BoxDecoration(
-            color: appTheme.colorFFF48F,
-            borderRadius: BorderRadius.circular(4.h),
+            color: appTheme.colorFFFFC8,
+            borderRadius: BorderRadius.circular(8.h),
           ),
         ),
-        SizedBox(width: 8.h),
+        SizedBox(width: 16.h),
         Container(
-          width: 8.h,
-          height: 8.h,
+          height: 16.h,
+          width: 32.h,
           decoration: BoxDecoration(
-            color: appTheme.colorFFFBCF,
-            borderRadius: BorderRadius.circular(4.h),
+            color: appTheme.colorFFF998,
+            borderRadius: BorderRadius.circular(8.h),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBottomAction(BuildContext context) {
+  Widget _buildNextButton(BuildContext context) {
     return Container(
+      width: double.maxFinite,
       padding: EdgeInsets.symmetric(
         horizontal: 20.h,
-        vertical: 32.h,
+        vertical: 24.h,
       ),
       child: CustomButton(
         text: 'Suivant',
         onPressed: () {
-          Navigator.of(context).pushNamed(AppRoutes.onboardingScreen);
+          Navigator.of(context).pushNamed(AppRoutes.authenticationScreen);
         },
       ),
     );
-  }
-
-  void _handleNextStep(BuildContext context) {
-    // Handle navigation to next onboarding screen
-    print('Proceeding to next onboarding step');
   }
 }

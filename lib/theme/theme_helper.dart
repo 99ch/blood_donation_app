@@ -9,12 +9,12 @@ ThemeData get theme => ThemeHelper().themeData();
 // ignore_for_file: must_be_immutable
 class ThemeHelper {
   // A map of custom color themes supported by the app
-  Map<String, LightCodeColors> _supportedCustomColor = {
+  final Map<String, LightCodeColors> _supportedCustomColor = {
     'lightCode': LightCodeColors()
   };
 
   // A map of color schemes supported by the app
-  Map<String, ColorScheme> _supportedColorScheme = {
+  final Map<String, ColorScheme> _supportedColorScheme = {
     'lightCode': ColorSchemes.lightCodeColorScheme
   };
 
@@ -51,25 +51,41 @@ class ColorSchemes {
 
 class LightCodeColors {
   // App Colors
-  Color get black => Color(0xFF1E1E1E);
-  Color get white => Color(0xFFFFFFFF);
-  Color get pink200 => Color(0xFFFBCFE8);
-  Color get pink400 => Color(0xFFF472B6);
-  Color get red400 => Color(0xFFF87171);
-  Color get gray300 => Color(0xFFD1D5DB);
+  Color get black => const Color(0xFF1E1E1E);
+  Color get white => const Color(0xFFFFFFFF);
+  Color get pink200 => const Color(0xFFFBCFE8);
+  Color get pink400 => const Color(0xFFF472B6);
+  Color get red400 => const Color(0xFFF87171);
+  Color get gray300 => const Color(0xFFD1D5DB);
+  Color get gray400 => const Color(0xFF9CA3AF);
 
   // Additional Colors
   Color get whiteCustom => Colors.white;
+  Color get blackCustom => Colors.black;
   Color get transparentCustom => Colors.transparent;
   Color get greyCustom => Colors.grey;
-  Color get colorFF0F0B => Color(0xFF0F0B03);
-  Color get colorFFFBCF => Color(0xFFFBCFE8);
-  Color get colorFFF48F => Color(0xFFF48FB1);
-  Color get colorFFF871 => Color(0xFFF87171);
-  Color get colorFFD1D5 => Color(0xFFD1D5DB);
-  Color get colorFF8808 => Color(0xFF880808);
+  Color get redCustom => Colors.red;
 
-  // Color Shades - Each shade has its own dedicated constant
+  // Combined specific colors
+  Color get colorFF0F0B => const Color(0xFF0F0B03);
+  Color get colorFFFBCF => const Color(0xFFFBCFE8);
+  Color get colorFFF48F => const Color(0xFFF48FB1);
+  Color get colorFFF871 => const Color(0xFFF87171);
+  Color get colorFFD1D5 => const Color(0xFFD1D5DB);
+  Color get colorFF8808 => const Color(0xFF880808);
+  Color get color7F4444 => const Color(0x7F444444);
+  Color get colorFF90BC => const Color(0xFF90BCFE);
+  Color get color99ECEC => const Color(0x99ECECEC);
+  Color get colorCC0061 => const Color(0xCC0061CB);
+  Color get colorC90202 => const Color(0xC9020202);
+  Color get colorFFFFC8 => const Color(0xFFFFC8C8);
+  Color get colorFFF998 => const Color(0xFFF99898);
+  Color get colorFF6606 => const Color(0xFF660606);
+  Color get colorFFD9D9 => const Color(0xFFD9D9D9);
+  Color get colorFF9A9A => const Color(0xFF9A9A9A);
+  Color get colorFF4444 => const Color(0xFF444444);
+
+  // Color Shades
   Color get grey200 => Colors.grey.shade200;
   Color get grey100 => Colors.grey.shade100;
 }

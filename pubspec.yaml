@@ -1,32 +1,36 @@
 name: chilavert_s_application
-description: A new Flutter project.
+description: AB Project-ee.
 version: 1.0.0+1
-environment: 
+environment:
   sdk: ^3.6.0
-dependencies: 
-  flutter: 
+dependencies:
+  flutter:
     sdk: flutter
-  flutter_localizations: 
+  flutter_localizations:
     sdk: flutter
   cached_network_image: ^3.3.0
   flutter_svg: ^2.0.9
   shared_preferences: ^2.5.3
   connectivity_plus: ^6.1.4
   web: any
-dev_dependencies: 
-  flutter_test: 
+dev_dependencies:
+  flutter_test:
     sdk: flutter
-flutter: 
+flutter:
   uses-material-design: true
-  assets: 
+  assets:
     - assets/
     - assets/images/
-  fonts: 
+  fonts:
     - family: Manrope
-      fonts: 
+      fonts:
         - asset: assets/fonts/ManropeRegular.ttf
           weight: 400
         - asset: assets/fonts/ManropeBold.ttf
           weight: 700
         - asset: assets/fonts/ManropeSemiBold.ttf
           weight: 600
+    - family: Lexend
+      fonts:
+        - asset: assets/fonts/LexendRegular.ttf
+          weight: 400

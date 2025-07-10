@@ -64,30 +64,46 @@ class CustomButton extends StatelessWidget {
   /// Whether the button is enabled or disabled
   final bool isEnabled;
 
-  @override
+@override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width ?? double.infinity,
+      width: width ?? 335.h,
       height: height ?? 44.h,
       child: ElevatedButton(
         onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? appTheme.colorFF8808,
           foregroundColor: textColor ?? appTheme.whiteCustom,
-          disabledBackgroundColor: backgroundColor?.withAlpha(128) ??
-              appTheme.colorFF8808.withAlpha(128),
-          disabledForegroundColor:
-              textColor?.withAlpha(128) ?? appTheme.whiteCustom.withAlpha(128),
-          elevation: 0,
-          shadowColor: appTheme.transparentCustom,
+          disabledBackgroundColor: appTheme.colorFF8808.withAlpha(128),
+          disabledForegroundColor: appTheme.whiteCustom.withAlpha(128),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius ?? 8.h),
+          ),
+          elevation: 0,
+          padding: EdgeInsets.zero,
+        ).copyWith(
+          overlayColor: WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.hovered)) {
+                return appTheme
+                    .colorFF6606; // Modified: Added missing space in return statement
+              }
+              if (states.contains(WidgetState.pressed)) {
+                return appTheme.colorFF6606.withAlpha(
+                    204); // Modified: Added missing space in return statement
+              }
+              return null;
+            },
           ),
         ),
         child: Text(
           text,
-          style: TextStyleHelper.instance.textStyle7
-              .copyWith(color: textColor ?? appTheme.whiteCustom),
+          style: TextStyle(
+            fontSize: fontSize ?? 14.fSize,
+            fontWeight: fontWeight ?? FontWeight.w600,
+            fontFamily: 'Manrope',
+            height: 1.43, // 20px / 14px = 1.43
+          ),
         ),
       ),
     );
