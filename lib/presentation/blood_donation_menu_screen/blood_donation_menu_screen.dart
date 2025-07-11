@@ -5,7 +5,7 @@ import '../../widgets/custom_bottom_navigation.dart';
 import '../../widgets/custom_image_view.dart';
 
 class BloodDonationMenuScreen extends StatelessWidget {
-  BloodDonationMenuScreen({Key? key}) : super(key: key);
+  const BloodDonationMenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class BloodDonationMenuScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigation(
+      bottomNavigationBar: const CustomBottomNavigation(
         currentRoute: AppRoutes.bloodDonationMenuScreen,
       ),
     );
@@ -80,9 +80,7 @@ class BloodDonationMenuScreen extends StatelessWidget {
             imageWidth: 45.h,
             imageHeight: 48.h,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Résultats d\'analyses coming soon')),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.testResultsHistoryPage);
             },
           ),
           _buildMenuCard(
@@ -92,9 +90,8 @@ class BloodDonationMenuScreen extends StatelessWidget {
             imageWidth: 28.h,
             imageHeight: 45.h,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Centres de collecte coming soon')),
-              );
+              Navigator.of(context)
+                  .pushNamed(AppRoutes.bloodCollectionCentersLocator);
             },
           ),
           _buildMenuCard(
@@ -104,9 +101,7 @@ class BloodDonationMenuScreen extends StatelessWidget {
             imageWidth: 34.h,
             imageHeight: 33.h,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Compte de sang coming soon')),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.digitalDonorCard);
             },
           ),
           _buildMenuCard(
@@ -116,9 +111,7 @@ class BloodDonationMenuScreen extends StatelessWidget {
             imageWidth: 57.h,
             imageHeight: 58.h,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Carte de donneur coming soon')),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.digitalDonorCard);
             },
           ),
           _buildCampaignMenuCard(context),
@@ -194,7 +187,7 @@ class BloodDonationMenuScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
+            SizedBox(
               width: 43.h,
               height: 43.h,
               child: Stack(

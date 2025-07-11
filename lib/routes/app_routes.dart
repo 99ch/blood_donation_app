@@ -7,6 +7,9 @@ import '../presentation/account_registration_screen/account_registration_screen.
 import '../presentation/onboarding_seven_enhanced_blood_donation_profile_setup/onboarding_seven_enhanced_blood_donation_profile_setup.dart';
 import '../presentation/blood_donation_menu_screen/blood_donation_menu_screen.dart';
 import '../presentation/donation_campaign_list_screen/donation_campaign_list_screen.dart';
+import '../presentation/test_results_history_page/test_results_history_page.dart';
+import '../presentation/blood_collection_centers_locator/blood_collection_centers_locator.dart';
+import '../presentation/digital_donor_card/digital_donor_card.dart';
 
 
 
@@ -20,6 +23,9 @@ class AppRoutes {
   static const String onboardingSevenEnhancedBloodDonationProfileSetup = '/onboarding-seven-enhanced-blood-donation-profile-setup';
   static const String bloodDonationMenuScreen = '/blood_donation_menu_screen';
   static const String donationCampaignListScreen = '/donation_campaign_list_screen';
+  static const String testResultsHistoryPage = '/test-results-history-page';
+  static const String bloodCollectionCentersLocator = '/blood-collection-centers-locator';
+  static const String digitalDonorCard = '/digital-donor-card';
 
       
       
@@ -33,6 +39,11 @@ class AppRoutes {
         onboardingScreen: (context) => OnboardingScreen(),
         accountRegistrationScreen: (context) => AccountRegistrationScreen(),
         onboardingSevenEnhancedBloodDonationProfileSetup: (context) => OnboardingSevenEnhancedBloodDonationProfileSetup(),
+        bloodDonationMenuScreen: (context) => BloodDonationMenuScreen(),
+        donationCampaignListScreen: (context) => DonationCampaignListScreen(),
+        testResultsHistoryPage: (context) => const TestResultsHistoryPage(),
+        bloodCollectionCentersLocator: (context) => const BloodCollectionCentersLocator(),
+        digitalDonorCard: (context) => const DigitalDonorCard(),    
         initialRoute: (context) => OnboardingTwoScreen()
       };
 }

@@ -48,6 +48,12 @@ class TextStyleHelper {
       );
 
   // Title Styles
+  TextStyle get title22SemiBold => TextStyle(
+        fontSize: 22.fSize,
+        fontWeight: FontWeight.w600,
+        color: appTheme.colorFF002A,
+      );
+
   TextStyle get title20 => TextStyle(
         fontSize: 20.fSize,
         color: appTheme.blackCustom,
@@ -63,6 +69,18 @@ class TextStyleHelper {
         fontSize: 20.fSize,
         fontWeight: FontWeight.w400,
         fontFamily: 'Roboto',
+      );
+
+  TextStyle get title20SemiBold => TextStyle(
+        fontSize: 20.fSize,
+        fontWeight: FontWeight.w600,
+        color: appTheme.whiteCustom,
+      );
+
+  TextStyle get title18Regular => TextStyle(
+        fontSize: 18.fSize,
+        fontWeight: FontWeight.w400,
+        color: appTheme.blackCustom,
       );
 
   TextStyle get title16 => TextStyle(
@@ -84,6 +102,18 @@ class TextStyleHelper {
         color: appTheme.colorFF0F0B,
       );
 
+  TextStyle get body14SemiBold => TextStyle(
+        fontSize: 14.fSize,
+        fontWeight: FontWeight.w600,
+        color: appTheme.colorFF5050,
+      );
+
+  TextStyle get body13Regular => TextStyle(
+        fontSize: 13.fSize,
+        fontWeight: FontWeight.w400,
+        color: appTheme.colorFF0F0B,
+      );
+
   TextStyle get body13RegularManrope => TextStyle(
         fontSize: 13.fSize,
         fontWeight: FontWeight.w400,
@@ -91,10 +121,10 @@ class TextStyleHelper {
         color: appTheme.colorFF0F0B,
       );
 
-  TextStyle get body13Regular => TextStyle(
-        fontSize: 13.fSize,
+  TextStyle get body12Regular => TextStyle(
+        fontSize: 12.fSize,
         fontWeight: FontWeight.w400,
-        color: appTheme.colorFF0F0B,
+        color: appTheme.colorFFFF57,
       );
 
   TextStyle get body15 => TextStyle(
@@ -107,6 +137,25 @@ class TextStyleHelper {
         fontWeight: FontWeight.w400,
         fontFamily: 'Lexend',
         color: appTheme.colorFF0000,
+      );
+
+  // Label Styles
+  TextStyle get label10Regular => TextStyle(
+        fontSize: 10.fSize,
+        fontWeight: FontWeight.w400,
+        color: appTheme.colorFFFAFA,
+      );
+
+  TextStyle get label8SemiBold => TextStyle(
+        fontSize: 8.fSize,
+        fontWeight: FontWeight.w600,
+        color: appTheme.colorFF8808,
+      );
+
+  TextStyle get label8Regular => TextStyle(
+        fontSize: 8.fSize,
+        fontWeight: FontWeight.w400,
+        color: appTheme.colorFF6C6B,
       );
 
   // Other Styles

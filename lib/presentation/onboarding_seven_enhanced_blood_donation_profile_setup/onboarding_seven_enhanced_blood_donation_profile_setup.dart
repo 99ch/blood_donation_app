@@ -422,7 +422,7 @@ class _OnboardingSevenEnhancedBloodDonationProfileSetupState
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context)
-                    .pushNamed(AppRoutes.accountRegistrationScreen);
+                    .pushNamed(AppRoutes.bloodDonationMenuScreen);
               },
               variant: CustomButtonVariant.elevated,
               backgroundColor: appTheme.colorFF8808,
