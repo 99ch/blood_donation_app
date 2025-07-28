@@ -42,18 +42,7 @@ class OnboardingTwoScreen extends StatelessWidget {
         right: 32.h,
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              'arriere',
-              style: TextStyleHelper.instance.body14RegularManrope,
-            ),
-          ),
-        ],
+        mainAxisAlignment: MainAxisAlignment.start
       ),
     );
   }
