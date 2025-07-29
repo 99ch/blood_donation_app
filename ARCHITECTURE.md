@@ -32,32 +32,32 @@ Cette couche gère l'interface utilisateur et les interactions. Elle est organis
 
 ##### 🔐 **Authentication & Onboarding**
 
-- `welcomeScreen/` - Écran d'accueil
-- `gettingStartedScreen/` - Introduction à l'app
-- `missionOverviewScreen/` - Présentation de la mission
-- `authentication_screen/` - Connexion utilisateur
-- `account_registration_screen/` - Inscription
+- `welcomeScreen/onboarding_screen.dart` - Écran d'accueil
+- `missionOverviewScreen/onboarding_two_screen.dart` - Présentation de la mission
+- `gettingStartedScreen/onboarding_three_screen.dart` - Introduction à l'app
+- `authentication_screen/authentication_screen.dart` - Connexion utilisateur
+- `account_registration_screen/account_registration_screen.dart` - Inscription
 
 ##### 👤 **Profile Management**
 
-- `donorProfileSetupScreen/` - Configuration du profil donneur
-- `digital_donor_card/` - Carte numérique du donneur
+- `donorProfileSetupScreen/donorProfileSetupScreen.dart` - Configuration du profil donneur
+- `digital_donor_card/digital_donor_card.dart` - Carte numérique du donneur
 
 ##### 🏥 **Blood Donation Management**
 
-- `blood_donation_menu_screen/` - Menu principal des dons
-- `donors_list_screen/` - Liste des donneurs
-- `create_donor_screen/` - Création de nouveaux donneurs
+- `blood_donation_menu_screen/blood_donation_menu_screen.dart` - Menu principal des dons
+- `donors_list_screen/donors_list_screen.dart` - Liste des donneurs
+- `create_donor_screen/create_donor_screen.dart` - Création de nouveaux donneurs
 
 ##### 🎯 **Campaigns & Centers**
 
-- `donation_campaign_list_screen/` - Liste des campagnes
-- `blood_collection_centers_locator/` - Localisation des centres
+- `donation_campaign_list_screen/donation_campaign_list_screen.dart` - Liste des campagnes
+- `blood_collection_centers_locator/blood_collection_centers_locator.dart` - Localisation des centres
 
 ##### 🏆 **Tracking & Rewards**
 
-- `badges_management_screen/` - Gestion des badges
-- `test_results_history_page/` - Historique des tests
+- `badges_management_screen/badges_management_screen.dart` - Gestion des badges
+- `test_results_history_page/test_results_history_page.dart` - Historique des tests
 
 ### 2. **Business Layer** (`lib/services/`)
 
@@ -104,9 +104,11 @@ Contient les utilitaires et configurations partagés :
 
 Composants réutilisables pour assurer la cohérence de l'interface :
 
-- **CustomButton** : Boutons standardisés
-- **CustomTextInput** : Champs de saisie avec validation
-- **CustomImageView** : Gestion optimisée des images
+- **custom_button.dart** : Boutons standardisés
+- **custom_text_input.dart** : Champs de saisie avec validation
+- **custom_image_view.dart** : Gestion optimisée des images
+- **custom_input_field.dart** : Champs d'entrée spécialisés
+- **custom_bottom_navigation.dart** : Navigation par onglets
 
 ### 5. **Navigation** (`lib/routes/`)
 
@@ -149,53 +151,71 @@ UI Widget → Controller/State → Service → API/Local Storage
 lib/
 ├── core/
 │   ├── app_export.dart           # Exports centralisés
+│   ├── config/
+│   │   └── app_config.dart       # Configuration des environnements
+│   ├── constants/
+│   │   └── app_constants.dart    # Constantes globales
 │   └── utils/
-│       ├── constants.dart        # Constantes de l'app
-│       ├── validators.dart       # Validation des données
-│       └── helpers.dart          # Fonctions utilitaires
+│       ├── image_constant.dart   # Constantes d'images
+│       └── size_utils.dart       # Utilitaires de taille
 │
 ├── presentation/
+│   ├── welcomeScreen/
+│   │   └── onboarding_screen.dart
+│   ├── missionOverviewScreen/
+│   │   └── onboarding_two_screen.dart
+│   ├── gettingStartedScreen/
+│   │   └── onboarding_three_screen.dart
 │   ├── authentication_screen/
-│   │   ├── authentication_screen.dart
-│   │   └── widgets/
-│   │       ├── login_form.dart
-│   │       └── social_login_buttons.dart
-│   │
+│   │   └── authentication_screen.dart
 │   ├── account_registration_screen/
-│   │   ├── account_registration_screen.dart
+│   │   └── account_registration_screen.dart
+│   ├── donorProfileSetupScreen/
+│   │   ├── donorProfileSetupScreen.dart
 │   │   └── widgets/
-│   │       ├── registration_form.dart
-│   │       └── country_selector.dart
-│   │
-│   └── [autres écrans suivent le même pattern]
+│   ├── blood_donation_menu_screen/
+│   │   └── blood_donation_menu_screen.dart
+│   ├── donors_list_screen/
+│   │   └── donors_list_screen.dart
+│   ├── create_donor_screen/
+│   │   └── create_donor_screen.dart
+│   ├── donation_campaign_list_screen/
+│   │   ├── donation_campaign_list_screen.dart
+│   │   └── widgets/
+│   ├── blood_collection_centers_locator/
+│   │   ├── blood_collection_centers_locator.dart
+│   │   └── widgets/
+│   ├── badges_management_screen/
+│   │   ├── badges_management_screen.dart
+│   │   └── widgets/
+│   ├── test_results_history_page/
+│   │   ├── test_results_history_page.dart
+│   │   └── widgets/
+│   └── digital_donor_card/
+│       ├── digital_donor_card.dart
+│       └── widgets/
 │
 ├── services/
-│   ├── api_service.dart          # Service API principal
-│   ├── auth_service.dart         # Service d'authentification
-│   ├── storage_service.dart      # Service de stockage local
-│   └── notification_service.dart # Service de notifications
+│   └── api_service.dart          # Service API principal
 │
 ├── models/
 │   ├── user.dart                 # Modèle utilisateur
 │   ├── donor.dart                # Modèle donneur
 │   ├── campaign.dart             # Modèle campagne
-│   └── badge.dart                # Modèle badge
+│   ├── badge.dart                # Modèle badge
+│   └── models.dart               # Export centralisé
 │
 ├── widgets/
-│   ├── common/
-│   │   ├── custom_button.dart
-│   │   ├── custom_text_input.dart
-│   │   └── custom_image_view.dart
-│   │
-│   └── specialized/
-│       ├── donor_card.dart
-│       ├── campaign_item.dart
-│       └── badge_widget.dart
+│   ├── custom_button.dart
+│   ├── custom_text_input.dart
+│   ├── custom_image_view.dart
+│   ├── custom_input_field.dart
+│   └── custom_bottom_navigation.dart
 │
 ├── theme/
-│   ├── app_theme.dart            # Thème principal
-│   ├── text_styles.dart          # Styles de texte
-│   └── colors.dart               # Palette de couleurs
+│   ├── theme_helper.dart         # Thème principal
+│   ├── text_style_helper.dart    # Styles de texte
+│   └── custom_button_styles.dart # Styles de boutons
 │
 └── routes/
     └── app_routes.dart           # Configuration des routes

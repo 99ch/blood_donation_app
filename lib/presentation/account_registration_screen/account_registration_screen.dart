@@ -4,22 +4,22 @@ import '../../core/app_export.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_image_view.dart';
 import '../../widgets/custom_text_input.dart';
-
 import '../../services/api_service.dart';
-import 'package:http/http.dart' as http;
 
 class AccountRegistrationScreen extends StatefulWidget {
   AccountRegistrationScreen({Key? key}) : super(key: key);
 
   @override
-  State<AccountRegistrationScreen> createState() => _AccountRegistrationScreenState();
+  State<AccountRegistrationScreen> createState() =>
+      _AccountRegistrationScreenState();
 }
 
 class _AccountRegistrationScreenState extends State<AccountRegistrationScreen> {
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   String selectedCountry = 'Bénin';
   bool isLoading = false;
   String? errorMessage;
@@ -253,6 +253,7 @@ class _AccountRegistrationScreenState extends State<AccountRegistrationScreen> {
       errorMessage = null;
       isLoading = true;
     });
+
     if (fullNameController.text.isEmpty ||
         emailController.text.isEmpty ||
         passwordController.text.isEmpty ||
@@ -264,6 +265,7 @@ class _AccountRegistrationScreenState extends State<AccountRegistrationScreen> {
       });
       return;
     }
+
     if (passwordController.text != confirmPasswordController.text) {
       setState(() {
         errorMessage = 'Les mots de passe ne correspondent pas.';
@@ -271,27 +273,19 @@ class _AccountRegistrationScreenState extends State<AccountRegistrationScreen> {
       });
       return;
     }
-    // Découper nom et prénom
-    final fullName = fullNameController.text.trim();
-    final parts = fullName.split(' ');
-    final nom = parts.isNotEmpty ? parts.first : '';
-    final prenoms = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-    final data = {
-      'username': emailController.text.trim(),
-      'email': emailController.text.trim(),
-      'password': passwordController.text.trim(),
-      'nom': nom,
-      'prenoms': prenoms,
-      // Optionnel : pays (selon backend)
-    };
+
     try {
-      final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/auth/users/'),
-        headers: {'Content-Type': 'application/json'},
-        body: ApiService.encodeJson(data),
+      final apiService = ApiService();
+      final result = await apiService.register(
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
-      if (response.statusCode == 201) {
-        setState(() { isLoading = false; });
+
+      setState(() {
+        isLoading = false;
+      });
+
+      if (result != null) {
         // Succès : naviguer ou afficher un message
         showDialog(
           context: context,
@@ -302,7 +296,8 @@ class _AccountRegistrationScreenState extends State<AccountRegistrationScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
-                  Navigator.pushReplacementNamed(context, AppRoutes.authenticationScreen);
+                  Navigator.pushReplacementNamed(
+                      context, AppRoutes.authenticationScreen);
                 },
                 child: Text('OK'),
               ),
@@ -311,8 +306,8 @@ class _AccountRegistrationScreenState extends State<AccountRegistrationScreen> {
         );
       } else {
         setState(() {
-          isLoading = false;
-          errorMessage = 'Erreur lors de la création du compte : ' + response.body;
+          errorMessage =
+              'Erreur lors de la création du compte. Vérifiez vos informations.';
         });
       }
     } catch (e) {

@@ -13,6 +13,7 @@ import '../presentation/digital_donor_card/digital_donor_card.dart';
 import '../presentation/badges_management_screen/badges_management_screen.dart';
 import '../presentation/create_donor_screen/create_donor_screen.dart';
 import '../presentation/donors_list_screen/donors_list_screen.dart';
+import '../presentation/debug/api_debug_screen.dart';
 
 class AppRoutes {
   static const String onboardingThreeScreen = '/onboarding_three_screen';
@@ -33,6 +34,7 @@ class AppRoutes {
   static const String badgesManagementScreen = '/badges-management-screen';
   static const String createDonorScreen = '/create-donor-screen';
   static const String donorsListScreen = '/donors_list_screen';
+  static const String apiDebugScreen = '/api-debug-screen';
 
   static const String initialRoute = '/initialRoute';
 
@@ -53,6 +55,7 @@ class AppRoutes {
         badgesManagementScreen: (context) => const BadgesManagementScreen(),
         createDonorScreen: (context) => const CreateDonorScreen(),
         donorsListScreen: (context) => const DonorsListScreen(),
+        apiDebugScreen: (context) => const ApiDebugScreen(),
         initialRoute: (context) => OnboardingTwoScreen()
       };
 }

@@ -298,15 +298,31 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     return Container(
       margin: EdgeInsets.only(top: 35.h),
       child: Center(
-        child: GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(context, AppRoutes.accountRegistrationScreen);
-          },
-          child: Text(
-            'Créer un compte ?',
-            style: TextStyleHelper.instance.title20
-                .copyWith(color: appTheme.colorC90202, height: 1.25),
-          ),
+        child: Column(
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.accountRegistrationScreen);
+              },
+              child: Text(
+                'Créer un compte ?',
+                style: TextStyleHelper.instance.title20
+                    .copyWith(color: appTheme.colorC90202, height: 1.25),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            // Bouton de debug temporaire
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.apiDebugScreen);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('🔧 Debug API'),
+            ),
+          ],
         ),
       ),
     );
