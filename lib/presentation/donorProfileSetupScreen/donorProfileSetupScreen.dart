@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_export.dart';
 import '../../widgets/custom_button.dart';
-import './widgets/blood_group_selector.dart';
-import './widgets/location_dropdown.dart';
-import './widgets/measurement_slider.dart';
+import 'widgets/blood_group_selector.dart';
+import 'widgets/location_dropdown.dart';
+import 'widgets/measurement_slider.dart';
 
 /// Onboarding Seven - Enhanced Blood Donation Profile Setup Screen
 ///

@@ -27,7 +27,7 @@ enum ImageType { svg, png, network, networkSvg, file, unknown }
 
 class CustomImageView extends StatelessWidget {
   CustomImageView(
-      {this.imagePath,
+      {String? imagePath,
       this.height,
       this.width,
       this.color,
@@ -37,14 +37,10 @@ class CustomImageView extends StatelessWidget {
       this.radius,
       this.margin,
       this.border,
-      this.placeHolder}) {
-    if (imagePath == null || imagePath!.isEmpty) {
-      imagePath = ImageConstant.imgImageNotFound;
-    }
-  }
+      this.placeHolder}) : imagePath = imagePath?.isNotEmpty == true ? imagePath : ImageConstant.imgImageNotFound;
 
   ///[imagePath] is required parameter for showing image
-  late String? imagePath;
+  final String? imagePath;
 
   final double? height;
 

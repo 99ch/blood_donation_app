@@ -4,16 +4,25 @@ import '../../core/app_export.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_image_view.dart';
 import '../../widgets/custom_text_input.dart';
-import '../../routes/app_routes.dart';
 
-class AccountRegistrationScreen extends StatelessWidget {
+import '../../services/api_service.dart';
+import 'package:http/http.dart' as http;
+
+class AccountRegistrationScreen extends StatefulWidget {
   AccountRegistrationScreen({Key? key}) : super(key: key);
 
+  @override
+  State<AccountRegistrationScreen> createState() => _AccountRegistrationScreenState();
+}
+
+class _AccountRegistrationScreenState extends State<AccountRegistrationScreen> {
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
   String selectedCountry = 'Bénin';
+  bool isLoading = false;
+  String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +44,15 @@ class AccountRegistrationScreen extends StatelessWidget {
             SizedBox(height: 24.h),
             _buildCountrySection(),
             SizedBox(height: 24.h),
-            _buildContinueButton(context), // ✅ Correction ici
+            if (errorMessage != null)
+              Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Text(
+                  errorMessage!,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            _buildContinueButton(context),
             SizedBox(height: 16.h),
             _buildLoginLinkSection(context),
           ],
@@ -217,12 +234,10 @@ class AccountRegistrationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContinueButton(BuildContext context) { // ✅ Correction ici
+  Widget _buildContinueButton(BuildContext context) {
     return CustomButton(
-      text: 'Continuer',
-      onPressed: () {
-        _handleRegistration(context); // ✅ context disponible
-      },
+      text: isLoading ? 'Création...' : 'Continuer',
+      onPressed: isLoading ? null : () => _handleRegistration(context),
       variant: CustomButtonVariant.elevated,
       backgroundColor: appTheme.colorFF8808,
       textColor: appTheme.whiteCustom,
@@ -231,6 +246,81 @@ class AccountRegistrationScreen extends StatelessWidget {
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );
+  }
+
+  Future<void> _handleRegistration(BuildContext context) async {
+    setState(() {
+      errorMessage = null;
+      isLoading = true;
+    });
+    if (fullNameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty ||
+        selectedCountry.isEmpty) {
+      setState(() {
+        errorMessage = 'Veuillez remplir tous les champs requis.';
+        isLoading = false;
+      });
+      return;
+    }
+    if (passwordController.text != confirmPasswordController.text) {
+      setState(() {
+        errorMessage = 'Les mots de passe ne correspondent pas.';
+        isLoading = false;
+      });
+      return;
+    }
+    // Découper nom et prénom
+    final fullName = fullNameController.text.trim();
+    final parts = fullName.split(' ');
+    final nom = parts.isNotEmpty ? parts.first : '';
+    final prenoms = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    final data = {
+      'username': emailController.text.trim(),
+      'email': emailController.text.trim(),
+      'password': passwordController.text.trim(),
+      'nom': nom,
+      'prenoms': prenoms,
+      // Optionnel : pays (selon backend)
+    };
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/auth/users/'),
+        headers: {'Content-Type': 'application/json'},
+        body: ApiService.encodeJson(data),
+      );
+      if (response.statusCode == 201) {
+        setState(() { isLoading = false; });
+        // Succès : naviguer ou afficher un message
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('Succès'),
+            content: Text('Compte créé avec succès. Connectez-vous !'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.pushReplacementNamed(context, AppRoutes.authenticationScreen);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'Erreur lors de la création du compte : ' + response.body;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Erreur réseau ou serveur.';
+      });
+    }
   }
 
   Widget _buildLoginLinkSection(BuildContext context) {
@@ -261,26 +351,5 @@ class AccountRegistrationScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _handleRegistration(BuildContext context) {
-    if (fullNameController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        passwordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty ||
-        selectedCountry.isEmpty) {
-      print('Veuillez remplir tous les champs requis.');
-      return;
-    }
-
-    if (passwordController.text != confirmPasswordController.text) {
-      print('Les mots de passe ne correspondent pas.');
-      return;
-    }
-
-    print('Registration data: ${fullNameController.text}, ${emailController.text}');
-
-    Navigator.pushNamed(
-        context, AppRoutes.onboardingSevenEnhancedBloodDonationProfileSetup);
   }
 }

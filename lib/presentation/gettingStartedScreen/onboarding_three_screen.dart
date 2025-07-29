@@ -152,9 +152,4 @@ class OnboardingThreeScreen extends StatelessWidget {
       ),
     );
   }
-
-  void _handleNextStep(BuildContext context) {
-    // Handle navigation to next onboarding screen
-    print('Proceeding to next onboarding step');
-  }
 }

@@ -16,9 +16,11 @@ dependencies:
   qr_flutter: ^4.1.0
   url_launcher: ^6.2.5
   web: any
+  http: ^1.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^4.0.0
   flutter_native_splash: ^2.4.0
   flutter_launcher_icons: ^0.13.1
 

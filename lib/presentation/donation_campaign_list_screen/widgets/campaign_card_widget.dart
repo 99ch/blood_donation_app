@@ -6,6 +6,11 @@ import '../../../widgets/custom_image_view.dart';
 class CampaignCardWidget extends StatelessWidget {
   final String title;
   final String date;
+  final String lieu;
+  final String description;
+  final String urgence;
+  final int objectif;
+  final int participants;
   final String iconPath;
   final VoidCallback? onTap;
 
@@ -13,6 +18,11 @@ class CampaignCardWidget extends StatelessWidget {
     Key? key,
     required this.title,
     required this.date,
+    this.lieu = '',
+    this.description = '',
+    this.urgence = 'normale',
+    this.objectif = 0,
+    this.participants = 0,
     required this.iconPath,
     this.onTap,
   }) : super(key: key);
@@ -27,6 +37,9 @@ class CampaignCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: appTheme.whiteCustom,
           borderRadius: BorderRadius.circular(24.h),
+          border: urgence == 'haute' 
+            ? Border.all(color: appTheme.primaryRed, width: 2)
+            : null,
         ),
         padding: EdgeInsets.all(12.h),
         child: Row(
@@ -39,37 +52,107 @@ class CampaignCardWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF5ED2D2),
-                    appTheme.colorFF5ED2,
-                  ],
+                  colors: urgence == 'haute' 
+                    ? [appTheme.primaryRed, appTheme.colorFF5050]
+                    : [Color(0xFF5ED2D2), appTheme.colorFF5ED2],
                 ),
               ),
-              child: CustomImageView(
-                imagePath: iconPath,
-                height: 83.h,
-                width: 83.h,
-                fit: BoxFit.cover,
+              child: Stack(
+                children: [
+                  CustomImageView(
+                    imagePath: iconPath,
+                    height: 83.h,
+                    width: 83.h,
+                    fit: BoxFit.cover,
+                  ),
+                  if (urgence == 'haute')
+                    Positioned(
+                      top: 4.h,
+                      right: 4.h,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 4.h, vertical: 2.h),
+                        decoration: BoxDecoration(
+                          color: appTheme.whiteCustom,
+                          borderRadius: BorderRadius.circular(8.h),
+                        ),
+                        child: Text(
+                          'URGENT',
+                          style: TextStyle(
+                            fontSize: 8.fSize,
+                            color: appTheme.primaryRed,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             SizedBox(width: 24.h),
             Expanded(
               child: Container(
-                height: 49.h,
+                height: 83.h,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyleHelper.instance.title18Regular
-                          .copyWith(height: 1.22),
+                    // Titre et lieu
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyleHelper.instance.title16SemiBold,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (lieu.isNotEmpty) ...[
+                          SizedBox(height: 2.h),
+                          Text(
+                            lieu,
+                            style: TextStyleHelper.instance.body12Regular.copyWith(
+                              color: appTheme.colorFF5050,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
                     ),
+                    
+                    // Date
                     Text(
                       date,
-                      style: TextStyleHelper.instance.title18Regular
-                          .copyWith(color: appTheme.colorFFF2AB, height: 1.22),
+                      style: TextStyleHelper.instance.body14SemiBold.copyWith(
+                        color: appTheme.primaryPink,
+                      ),
                     ),
+                    
+                    // Progression si objectif défini
+                    if (objectif > 0) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LinearProgressIndicator(
+                              value: participants / objectif,
+                              backgroundColor: appTheme.lightPink.withAlpha(128),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                urgence == 'haute' ? appTheme.primaryRed : appTheme.primaryPink,
+                              ),
+                              minHeight: 4.h,
+                            ),
+                          ),
+                          SizedBox(width: 8.h),
+                          Text(
+                            '$participants/$objectif',
+                            style: TextStyle(
+                              fontSize: 10.fSize,
+                              color: appTheme.colorFF5050,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

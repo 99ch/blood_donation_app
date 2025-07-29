@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_navigation.dart';
+import '../../services/api_service.dart';
 import './widgets/test_filter_widget.dart';
 import './widgets/test_result_card_widget.dart';
 
@@ -14,10 +16,15 @@ class TestResultsHistoryPage extends StatefulWidget {
 
 class _TestResultsHistoryPageState extends State<TestResultsHistoryPage> {
   final ScrollController _scrollController = ScrollController();
-  bool _isRefreshing = false;
   String _selectedFilter = 'All';
+  
+  // État pour les données de l'API
+  List<dynamic>? _apiResults;
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  final List<Map<String, dynamic>> _testResults = [
+  // Données mockées de fallback
+  final List<Map<String, dynamic>> _mockTestResults = [
     {
       'date': '2025-07-08',
       'bloodType': 'O+',
@@ -77,6 +84,90 @@ class _TestResultsHistoryPageState extends State<TestResultsHistoryPage> {
     }
   ];
 
+  // Propriété calculée pour obtenir les résultats finaux
+  List<Map<String, dynamic>> get _testResults {
+    if (_apiResults != null && _apiResults!.isNotEmpty) {
+      // Convertir les données API au format attendu
+      return _apiResults!.map((result) => _convertApiResultToDisplayFormat(result)).toList();
+    }
+    // Utiliser les données mockées comme fallback
+    return _mockTestResults;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTestResults();
+  }
+
+  Future<void> _fetchTestResults() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+      
+      if (token != null) {
+        final api = ApiService();
+        final results = await api.getResultatsAnalyse(token);
+        
+        setState(() {
+          _apiResults = results;
+          _isLoading = false;
+        });
+      } else {
+        // Pas de token, utiliser les données mockées
+        setState(() {
+          _apiResults = null;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erreur lors du chargement: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Map<String, dynamic> _convertApiResultToDisplayFormat(dynamic apiResult) {
+    // Convertir le format de l'API backend vers le format attendu par l'UI
+    return {
+      'date': apiResult['date_ajout']?.substring(0, 10) ?? '2025-01-01',
+      'bloodType': 'O+', // Non disponible dans l'API, utiliser une valeur par défaut
+      'hemoglobin': 14.5, // Non disponible dans l'API, utiliser une valeur par défaut
+      'status': 'Healthy',
+      'statusColor': Colors.green,
+      'nextDonationDate': _calculateNextDonationDate(apiResult['date_ajout']),
+      'labValues': {
+        'File': apiResult['fichier_pdf'] ?? 'Aucun fichier',
+        'Donneur ID': apiResult['donneur']?.toString() ?? 'N/A',
+        'Date Ajout': apiResult['date_ajout'] ?? 'N/A',
+      },
+      'recommendations': [
+        'Résultat d\'analyse disponible',
+        'Contactez votre médecin pour l\'interprétation',
+        'Gardez ce document pour vos dossiers médicaux'
+      ],
+      'apiData': apiResult, // Garder les données originales
+    };
+  }
+
+  String _calculateNextDonationDate(String? dateAjout) {
+    if (dateAjout == null) return '2025-09-01';
+    
+    try {
+      final date = DateTime.parse(dateAjout);
+      final nextDate = date.add(Duration(days: 90)); // 3 mois après
+      return '${nextDate.year}-${nextDate.month.toString().padLeft(2, '0')}-${nextDate.day.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return '2025-09-01';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,9 +190,43 @@ class _TestResultsHistoryPageState extends State<TestResultsHistoryPage> {
                       color: theme.colorScheme.onSurface),
                   onPressed: () => _showFilterBottomSheet()),
             ]),
-        body: RefreshIndicator(
-            onRefresh: _handleRefresh,
-            child: Column(children: [
+        body: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: theme.colorScheme.error,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          _errorMessage!,
+                          style: TextStyle(fontSize: 16.fSize),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 16.h),
+                        ElevatedButton(
+                          onPressed: _fetchTestResults,
+                          child: Text('Réessayer'),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'Affichage des données de démonstration',
+                          style: TextStyle(
+                            fontSize: 12.fSize,
+                            color: theme.colorScheme.onSurface.withAlpha(153),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _handleRefresh,
+                    child: Column(children: [
               // Breadcrumb navigation
               Container(
                   padding: EdgeInsets.symmetric(horizontal: 16.h),
@@ -153,16 +278,8 @@ class _TestResultsHistoryPageState extends State<TestResultsHistoryPage> {
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() {
-      _isRefreshing = false;
-    });
+    // Recharger les données depuis l'API
+    await _fetchTestResults();
   }
 
   void _showFilterBottomSheet() {
