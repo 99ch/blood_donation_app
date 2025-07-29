@@ -1,15 +1,48 @@
 import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_image_view.dart';
 import '../../widgets/custom_input_field.dart';
+import '../../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class AuthenticationScreen extends StatelessWidget {
+class AuthenticationScreen extends StatefulWidget {
   AuthenticationScreen({Key? key}) : super(key: key);
 
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  @override
+  State<AuthenticationScreen> createState() => _AuthenticationScreenState();
+}
+
+class _AuthenticationScreenState extends State<AuthenticationScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
+  String? errorMessage;
+
+  Future<void> _login(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    final api = ApiService();
+    final token = await api.login(
+      emailController.text.trim(),
+      passwordController.text.trim(),
+    );
+    setState(() {
+      isLoading = false;
+    });
+    if (token != null) {
+      // Stocker le token JWT
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('jwt_token', token);
+      Navigator.pushReplacementNamed(context, AppRoutes.bloodDonationMenuScreen);
+    } else {
+      setState(() {
+        errorMessage = "Identifiants invalides. Veuillez réessayer.";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +61,19 @@ class AuthenticationScreen extends StatelessWidget {
                 children: [
                   _buildBackNavigation(context),
                   _buildLoginForm(context),
+                  if (errorMessage != null)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 21.h, vertical: 8),
+                      child: Text(
+                        errorMessage!,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  if (isLoading)
+                    Center(child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(),
+                    )),
                   _buildOrDivider(),
                   _buildSocialLoginSection(context),
                   _buildCreateAccountLink(context),
@@ -104,6 +150,7 @@ class AuthenticationScreen extends StatelessWidget {
             controller: passwordController,
             hintText: 'Password',
             keyboardType: TextInputType.visiblePassword,
+            obscureText: true,
           ),
           SizedBox(height: 31.h),
           Container(
@@ -122,10 +169,7 @@ class AuthenticationScreen extends StatelessWidget {
           SizedBox(height: 40.h),
           CustomButton(
             text: 'Se connecter',
-            onPressed: () {
-              // Handle login
-              print('Login button pressed');
-            },
+            onPressed: isLoading ? null : () => _login(context),
           ),
         ],
       ),

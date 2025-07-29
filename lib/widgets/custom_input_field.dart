@@ -23,6 +23,7 @@ class CustomInputField extends StatelessWidget {
     this.isRequired,
     this.onChanged,
     this.enabled,
+    this.obscureText = false,
   }) : super(key: key);
 
   /// Controller for managing the input text
@@ -45,6 +46,9 @@ class CustomInputField extends StatelessWidget {
 
   /// Whether the field is enabled
   final bool? enabled;
+
+  /// Whether to obscure the text (for passwords)
+  final bool obscureText;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +73,7 @@ class CustomInputField extends StatelessWidget {
         validator: validator,
         onChanged: onChanged,
         enabled: enabled ?? true,
+        obscureText: obscureText,
         style: TextStyleHelper.instance.title20Lexend.copyWith(height: 1.25),
         decoration: InputDecoration(
           hintText: hintText ?? "example@gmail.com",

@@ -8,6 +8,9 @@ import './widgets/donation_milestone_widget.dart';
 import './widgets/donor_card_widget.dart';
 import './widgets/emergency_contact_widget.dart';
 
+import '../../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 class DigitalDonorCard extends StatefulWidget {
   const DigitalDonorCard({super.key});
 
@@ -20,26 +23,45 @@ class _DigitalDonorCardState extends State<DigitalDonorCard>
   late TabController _tabController;
   String _qrData = '';
 
-  // Mock user data - in real app, this would come from a data source
-  final Map<String, dynamic> _userData = {
-    'fullName': 'John Doe',
-    'bloodType': 'O+',
-    'donorId': 'BD2024-001234',
-    'totalDonations': 15,
-    'photoUrl': 'https://via.placeholder.com/150',
-    'registrationDate': '2022-01-15',
-    'lastDonation': '2024-06-15',
-    'nextEligibleDate': '2024-08-15',
-    'phoneNumber': '+1 (555) 123-4567',
-    'emergencyContact': 'Jane Doe - +1 (555) 987-6543',
-    'medicalNotes': 'No known allergies',
-  };
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _generateQRCode();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    if (token == null) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Utilisateur non authentifié.';
+      });
+      return;
+    }
+    final api = ApiService();
+    final user = await api.getCurrentDonor(token);
+    if (user != null) {
+      setState(() {
+        _userData = user;
+        _isLoading = false;
+      });
+      _generateQRCode();
+    } else {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Erreur lors du chargement des informations.';
+      });
+    }
   }
 
   @override
@@ -49,11 +71,11 @@ class _DigitalDonorCardState extends State<DigitalDonorCard>
   }
 
   void _generateQRCode() {
-    // Generate QR code data with user information
+    if (_userData == null) return;
     final qrData = {
-      'donorId': _userData['donorId'],
-      'fullName': _userData['fullName'],
-      'bloodType': _userData['bloodType'],
+      'donorId': _userData!['donorId'] ?? _userData!['id'] ?? '',
+      'fullName': _userData!['fullName'] ?? _userData!['username'] ?? '',
+      'bloodType': _userData!['bloodType'] ?? '',
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     };
     setState(() {
@@ -184,91 +206,97 @@ class _DigitalDonorCardState extends State<DigitalDonorCard>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Main Donor Card
-          Container(
-            margin: const EdgeInsets.all(16),
-            child: DonorCardWidget(
-              userData: _userData,
-              qrData: _qrData,
-              onRegenerateQR: _generateQRCode,
-            ),
-          ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(child: Text(_errorMessage!))
+              : _userData == null
+                  ? Center(child: Text('Aucune donnée à afficher.'))
+                  : Column(
+                      children: [
+                        // Main Donor Card
+                        Container(
+                          margin: const EdgeInsets.all(16),
+                          child: DonorCardWidget(
+                            userData: _userData!,
+                            qrData: _qrData,
+                            onRegenerateQR: _generateQRCode,
+                          ),
+                        ),
 
-          // Tab Bar
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: appTheme.whiteCustom,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: appTheme.blackCustom.withAlpha(26),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: appTheme.darkRed,
-              unselectedLabelColor: appTheme.colorFF5050,
-              indicator: BoxDecoration(
-                color: appTheme.primaryPink,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              tabs: const [
-                Tab(text: 'Milestones'),
-                Tab(text: 'Emergency'),
-              ],
-            ),
-          ),
+                        // Tab Bar
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: appTheme.whiteCustom,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: appTheme.blackCustom.withAlpha(26),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: TabBar(
+                            controller: _tabController,
+                            labelColor: appTheme.darkRed,
+                            unselectedLabelColor: appTheme.colorFF5050,
+                            indicator: BoxDecoration(
+                              color: appTheme.primaryPink,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            tabs: const [
+                              Tab(text: 'Milestones'),
+                              Tab(text: 'Emergency'),
+                            ],
+                          ),
+                        ),
 
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Milestones Tab
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Donation Milestones
-                      DonationMilestoneWidget(
-                        totalDonations: _userData['totalDonations'],
-                        nextEligibleDate: _userData['nextEligibleDate'],
-                        lastDonation: _userData['lastDonation'],
-                      ),
+                        // Tab Content
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              // Milestones Tab
+                              SingleChildScrollView(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Donation Milestones
+                                    DonationMilestoneWidget(
+                                      totalDonations: _userData!['totalDonations'] ?? 0,
+                                      nextEligibleDate: _userData!['nextEligibleDate'] ?? '',
+                                      lastDonation: _userData!['lastDonation'] ?? '',
+                                    ),
 
-                      const SizedBox(height: 16),
+                                    const SizedBox(height: 16),
 
-                      // Achievement Badges
-                      AchievementBadgeWidget(
-                        totalDonations: _userData['totalDonations'],
-                        registrationDate: _userData['registrationDate'],
-                      ),
-                    ],
-                  ),
-                ),
+                                    // Achievement Badges
+                                    AchievementBadgeWidget(
+                                      totalDonations: _userData!['totalDonations'] ?? 0,
+                                      registrationDate: _userData!['registrationDate'] ?? '',
+                                    ),
+                                  ],
+                                ),
+                              ),
 
-                // Emergency Contact Tab
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: EmergencyContactWidget(
-                    phoneNumber: _userData['phoneNumber'],
-                    emergencyContact: _userData['emergencyContact'],
-                    medicalNotes: _userData['medicalNotes'],
-                    bloodType: _userData['bloodType'],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+                              // Emergency Contact Tab
+                              SingleChildScrollView(
+                                padding: const EdgeInsets.all(16),
+                                child: EmergencyContactWidget(
+                                  phoneNumber: _userData!['phoneNumber'] ?? '',
+                                  emergencyContact: _userData!['emergencyContact'] ?? '',
+                                  medicalNotes: _userData!['medicalNotes'] ?? '',
+                                  bloodType: _userData!['bloodType'] ?? '',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
       bottomNavigationBar: const CustomBottomNavigation(
         currentRoute: AppRoutes.digitalDonorCard,
       ),

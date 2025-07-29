@@ -114,6 +114,36 @@ class BloodDonationMenuScreen extends StatelessWidget {
               Navigator.of(context).pushNamed(AppRoutes.digitalDonorCard);
             },
           ),
+          _buildMenuCard(
+            context,
+            imagePath: ImageConstant.imgVectorRed800, // À personnaliser
+            title: 'Liste des donneurs',
+            imageWidth: 45.h,
+            imageHeight: 48.h,
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRoutes.donorsListScreen);
+            },
+          ),
+          _buildMenuCard(
+            context,
+            imagePath: ImageConstant.imgVectorRed80045x33, // Icône de badge
+            title: 'Gestion des Badges',
+            imageWidth: 45.h,
+            imageHeight: 48.h,
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRoutes.badgesManagementScreen);
+            },
+          ),
+          _buildMenuCard(
+            context,
+            imagePath: ImageConstant.imgVectorRed800, // Icône d'ajout
+            title: 'Créer un Donneur',
+            imageWidth: 45.h,
+            imageHeight: 48.h,
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRoutes.createDonorScreen);
+            },
+          ),
           _buildCampaignMenuCard(context),
         ],
       ),

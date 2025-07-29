@@ -19,6 +19,8 @@ class CustomButton extends StatelessWidget {
     this.borderRadius,
     this.isFullWidth = false,
     this.isEnabled = true,
+    this.buttonStyle,
+    this.buttonTextStyle,
   }) : super(key: key);
 
   final String text;
@@ -34,6 +36,8 @@ class CustomButton extends StatelessWidget {
   final double? borderRadius;
   final bool isFullWidth;
   final bool isEnabled;
+  final ButtonStyle? buttonStyle;
+  final TextStyle? buttonTextStyle;
 
   @override
   Widget build(BuildContext context) {

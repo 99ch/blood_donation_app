@@ -28,6 +28,7 @@ class CustomTextInput extends StatelessWidget {
     this.validator,
     this.textInputType,
     this.enabled,
+    this.suffixIcon,
   }) : super(key: key);
 
   /// Controller for managing the text input
@@ -47,6 +48,9 @@ class CustomTextInput extends StatelessWidget {
 
   /// Whether the input field is enabled
   final bool? enabled;
+
+  /// Suffix icon widget
+  final Widget? suffixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +78,7 @@ class CustomTextInput extends StatelessWidget {
           hintText: hintText ?? "Enter text",
           hintStyle: TextStyleHelper.instance.body15RegularLexend
               .copyWith(color: appTheme.colorFF9A9A, height: 1.27),
+          suffixIcon: suffixIcon,
           contentPadding: EdgeInsets.symmetric(
             horizontal: 16.h,
             vertical: 21.h,

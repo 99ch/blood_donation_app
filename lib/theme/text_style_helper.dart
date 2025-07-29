@@ -158,6 +158,50 @@ class TextStyleHelper {
         color: appTheme.colorFF6C6B,
       );
 
+  // Additional Title Styles
+  TextStyle get title16SemiBold => TextStyle(
+        fontSize: 16.fSize,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Manrope',
+        color: appTheme.colorFF0F0B,
+      );
+
+  TextStyle get title18SemiBold => TextStyle(
+        fontSize: 18.fSize,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Manrope',
+        color: appTheme.colorFF0F0B,
+      );
+
+  // Additional Body Styles
+  TextStyle get body16Regular => TextStyle(
+        fontSize: 16.fSize,
+        fontWeight: FontWeight.w400,
+        fontFamily: 'Manrope',
+        color: appTheme.colorFF0F0B,
+      );
+
+  TextStyle get body16SemiBold => TextStyle(
+        fontSize: 16.fSize,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Manrope',
+        color: appTheme.colorFF0F0B,
+      );
+
+  TextStyle get body12SemiBold => TextStyle(
+        fontSize: 12.fSize,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Manrope',
+        color: appTheme.colorFF0F0B,
+      );
+
+  TextStyle get body10Regular => TextStyle(
+        fontSize: 10.fSize,
+        fontWeight: FontWeight.w400,
+        fontFamily: 'Manrope',
+        color: appTheme.colorFF0F0B,
+      );
+
   // Other Styles
   TextStyle get textStyle6 => TextStyle();
 
