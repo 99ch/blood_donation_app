@@ -1,0 +1,347 @@
+name: Release & Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - prerelease
+
+jobs:
+  # Job 1: Validation pré-release
+  pre-release-validation:
+    name: Pre-Release Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Determine version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=${GITHUB_REF#refs/tags/v}
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+        echo "Release version: $VERSION"
+
+    - name: Update pubspec.yaml version
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        BUILD_NUMBER=$(echo $GITHUB_RUN_NUMBER)
+        sed -i "s/^version: .*/version: $VERSION+$BUILD_NUMBER/" pubspec.yaml
+        echo "Updated pubspec.yaml with version $VERSION+$BUILD_NUMBER"
+        cat pubspec.yaml | grep "version:"
+
+    - name: Run comprehensive tests
+      run: |
+        echo "Running all tests before release..."
+        flutter test --coverage
+        flutter test test/api_integration_test.dart
+        flutter test test/backend_connectivity_test.dart
+        flutter test test/integration_complete_test.dart
+
+    - name: Analyze code quality
+      run: |
+        flutter analyze --fatal-warnings
+        dart format --set-exit-if-changed lib/ test/
+
+    - name: Upload updated pubspec
+      uses: actions/upload-artifact@v3
+      with:
+        name: updated-pubspec
+        path: pubspec.yaml
+        retention-days: 1
+
+  # Job 2: Build de release pour Android
+  build-release-android:
+    name: Build Android Release
+    runs-on: ubuntu-latest
+    needs: pre-release-validation
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download updated pubspec
+      uses: actions/download-artifact@v3
+      with:
+        name: updated-pubspec
+
+    - name: Setup Java JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create production .env
+      run: |
+        echo "API_BASE_URL=https://api.blooddonation.com/api" > .env
+        echo "ENVIRONMENT=production" >> .env
+        echo "ENABLE_LOGGING=false" >> .env
+        echo "API_TIMEOUT=30" >> .env
+
+    - name: Build release APK
+      run: flutter build apk --release --verbose
+
+    - name: Build release AAB
+      run: flutter build appbundle --release --verbose
+
+    - name: Sign Android releases (if configured)
+      run: |
+        echo "Android signing would be configured here"
+        # Placeholder for Android signing process
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-release-apk-${{ needs.pre-release-validation.outputs.version }}
+        path: build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 90
+
+    - name: Upload AAB
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-release-aab-${{ needs.pre-release-validation.outputs.version }}
+        path: build/app/outputs/bundle/release/app-release.aab
+        retention-days: 90
+
+  # Job 3: Build de release pour iOS
+  build-release-ios:
+    name: Build iOS Release
+    runs-on: macos-latest
+    needs: pre-release-validation
+    timeout-minutes: 45
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download updated pubspec
+      uses: actions/download-artifact@v3
+      with:
+        name: updated-pubspec
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create production .env
+      run: |
+        echo "API_BASE_URL=https://api.blooddonation.com/api" > .env
+        echo "ENVIRONMENT=production" >> .env
+        echo "ENABLE_LOGGING=false" >> .env
+        echo "API_TIMEOUT=30" >> .env
+
+    - name: Setup CocoaPods
+      run: |
+        cd ios
+        pod install
+        cd ..
+
+    - name: Build iOS release
+      run: |
+        echo "Building iOS release (unsigned for demo)..."
+        flutter build ios --release --no-codesign --verbose
+        
+        echo "⚠️  Production iOS builds require code signing configuration"
+
+    - name: Upload iOS build
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-release-${{ needs.pre-release-validation.outputs.version }}
+        path: build/ios/iphoneos/Runner.app
+        retention-days: 90
+        if-no-files-found: warn
+
+  # Job 4: Créer la release GitHub
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [pre-release-validation, build-release-android, build-release-ios]
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download Android APK
+      uses: actions/download-artifact@v3
+      with:
+        name: android-release-apk-${{ needs.pre-release-validation.outputs.version }}
+        path: ./releases/
+
+    - name: Download Android AAB
+      uses: actions/download-artifact@v3
+      with:
+        name: android-release-aab-${{ needs.pre-release-validation.outputs.version }}
+        path: ./releases/
+
+    - name: Generate release notes
+      id: release-notes
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        
+        cat > release_notes.md << EOF
+        # 🩸 Blood Donation App v$VERSION
+        
+        ## 🚀 Nouveautés
+        
+        - Configuration API dynamique avec interface utilisateur
+        - Système de notifications push complet
+        - Authentification JWT avancée avec auto-refresh
+        - Visualisation des dons avec graphiques interactifs
+        - Gestion des rendez-vous de don
+        - Tests d'intégration automatiques
+        
+        ## 🔧 Améliorations Techniques
+        
+        - Architecture refactorisée avec separation of concerns
+        - Services complètement réécrits pour plus de robustesse
+        - Gestion d'erreurs avancée avec retry automatique
+        - Navigation intelligente selon l'état d'authentification
+        - Support complet des variables d'environnement
+        
+        ## 📱 Builds Disponibles
+        
+        - **Android APK**: Pour installation directe
+        - **Android AAB**: Pour Google Play Store
+        - **iOS**: Nécessite configuration de signature
+        
+        ## 🔗 Intégration Backend
+        
+        Cette version nécessite le backend Django avec tous les endpoints complets.
+        Voir \`INTEGRATION_GUIDE.md\` pour la configuration.
+        
+        ## 📚 Documentation
+        
+        - \`README.md\`: Vue d'ensemble et installation
+        - \`ARCHITECTURE.md\`: Architecture technique détaillée
+        - \`API_DOCUMENTATION.md\`: Documentation des endpoints
+        - \`INTEGRATION_GUIDE.md\`: Guide d'intégration backend-frontend
+        
+        ---
+        
+        **Date de release**: $(date)
+        **Build number**: $GITHUB_RUN_NUMBER
+        **Commit**: $GITHUB_SHA
+        EOF
+        
+        echo "Release notes generated"
+        cat release_notes.md
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ needs.pre-release-validation.outputs.tag }}
+        name: 'Blood Donation App v${{ needs.pre-release-validation.outputs.version }}'
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ contains(needs.pre-release-validation.outputs.version, '-') }}
+        files: |
+          releases/app-release.apk
+          releases/app-release.aab
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Job 5: Notifications post-release
+  post-release-notifications:
+    name: Post-Release Tasks
+    runs-on: ubuntu-latest
+    needs: [pre-release-validation, create-github-release]
+    if: always()
+
+    steps:
+    - name: Release summary
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        
+        echo "## 🎉 Release v$VERSION Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tag**: ${{ needs.pre-release-validation.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Number**: $GITHUB_RUN_NUMBER" >> $GITHUB_STEP_SUMMARY
+        echo "- **Release Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.create-github-release.result }}" = "success" ]; then
+          echo "- **GitHub Release**: ✅ Created successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifacts**: Android APK, Android AAB uploaded" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **GitHub Release**: ❌ Failed to create" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "1. Test the release builds thoroughly" >> $GITHUB_STEP_SUMMARY
+        echo "2. Upload AAB to Google Play Console" >> $GITHUB_STEP_SUMMARY
+        echo "3. Configure iOS code signing for App Store" >> $GITHUB_STEP_SUMMARY
+        echo "4. Update backend API if needed" >> $GITHUB_STEP_SUMMARY
+        echo "5. Notify team and stakeholders" >> $GITHUB_STEP_SUMMARY
+
+    - name: Check job results
+      run: |
+        echo "Pre-release validation: ${{ needs.pre-release-validation.result }}"
+        echo "GitHub release creation: ${{ needs.create-github-release.result }}"
+        
+        if [ "${{ needs.pre-release-validation.result }}" = "failure" ] || [ "${{ needs.create-github-release.result }}" = "failure" ]; then
+          echo "❌ Release pipeline had failures"
+          exit 1
+        else
+          echo "✅ Release completed successfully"
+        fi

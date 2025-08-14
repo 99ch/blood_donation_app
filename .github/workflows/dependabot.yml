@@ -1,0 +1,119 @@
+name: Dependabot Auto-merge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: read
+
+jobs:
+  dependabot-auto-merge:
+    name: Dependabot Auto-merge
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Get Dependabot metadata
+      id: dependabot-metadata
+      uses: dependabot/fetch-metadata@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run quick tests
+      run: |
+        echo "Running quick validation tests for Dependabot PR..."
+        flutter analyze --fatal-warnings
+        flutter test --reporter=compact
+        echo "✅ Basic tests passed"
+
+    - name: Determine auto-merge eligibility
+      id: auto-merge-check
+      run: |
+        UPDATE_TYPE="${{ steps.dependabot-metadata.outputs.update-type }}"
+        DEPENDENCY_TYPE="${{ steps.dependabot-metadata.outputs.dependency-type }}"
+        
+        echo "Update type: $UPDATE_TYPE"
+        echo "Dependency type: $DEPENDENCY_TYPE"
+        
+        # Auto-merge criteria
+        AUTO_MERGE=false
+        
+        # Auto-merge patch updates for direct dependencies
+        if [ "$UPDATE_TYPE" = "version-update:semver-patch" ] && [ "$DEPENDENCY_TYPE" = "direct" ]; then
+          AUTO_MERGE=true
+        fi
+        
+        # Auto-merge minor updates for dev dependencies
+        if [ "$DEPENDENCY_TYPE" = "indirect" ]; then
+          AUTO_MERGE=true
+        fi
+        
+        # Security updates are always auto-merged
+        if echo "${{ github.event.pull_request.title }}" | grep -i "security\|vulnerability"; then
+          AUTO_MERGE=true
+        fi
+        
+        echo "auto_merge=$AUTO_MERGE" >> $GITHUB_OUTPUT
+        
+        if [ "$AUTO_MERGE" = "true" ]; then
+          echo "✅ PR eligible for auto-merge"
+        else
+          echo "⏸️  PR requires manual review"
+        fi
+
+    - name: Approve PR
+      if: steps.auto-merge-check.outputs.auto_merge == 'true'
+      run: |
+        gh pr review --approve "${{ github.event.pull_request.number }}" \
+          --body "✅ Auto-approved by Dependabot workflow after successful tests"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Enable auto-merge
+      if: steps.auto-merge-check.outputs.auto_merge == 'true'
+      run: |
+        gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
+        echo "🤖 Auto-merge enabled for Dependabot PR"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add labels
+      if: steps.auto-merge-check.outputs.auto_merge == 'true'
+      run: |
+        gh pr edit "${{ github.event.pull_request.number }}" \
+          --add-label "dependencies,auto-merge"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Comment on manual review needed
+      if: steps.auto-merge-check.outputs.auto_merge == 'false'
+      run: |
+        gh pr comment "${{ github.event.pull_request.number }}" \
+          --body "⏸️ This Dependabot PR requires manual review because:
+          - Update type: ${{ steps.dependabot-metadata.outputs.update-type }}
+          - Dependency type: ${{ steps.dependabot-metadata.outputs.dependency-type }}
+          
+          Please review and merge manually if appropriate."
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

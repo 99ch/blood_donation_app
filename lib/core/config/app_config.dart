@@ -1,49 +1,51 @@
 /// Configuration des environnements de l'application
 ///
 /// Ce fichier centralise les configurations pour différents environnements
-/// (développement, test, production)
+/// (développement, test, production) en utilisant les variables d'environnement
+library;
+
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
+  /// Initialise la configuration en chargeant le fichier .env
+  static Future<void> initialize() async {
+    await dotenv.load(fileName: '.env');
+  }
+
   /// URL de base de l'API selon l'environnement
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:8000/api', // Développement local
-  );
+  static String get apiBaseUrl =>
+      dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000/api';
 
   /// Clé pour l'encryption des données locales
-  static const String encryptionKey = String.fromEnvironment(
-    'ENCRYPTION_KEY',
-    defaultValue: 'blood_donation_app_key',
-  );
+  static String get encryptionKey =>
+      dotenv.env['ENCRYPTION_KEY'] ?? 'blood_donation_app_key';
 
   /// Configuration pour les logs
-  static const bool enableLogging = bool.fromEnvironment(
-    'ENABLE_LOGGING',
-    defaultValue: true,
-  );
+  static bool get enableLogging =>
+      dotenv.env['ENABLE_LOGGING']?.toLowerCase() == 'true';
 
   /// Configuration pour les analytics
-  static const bool enableAnalytics = bool.fromEnvironment(
-    'ENABLE_ANALYTICS',
-    defaultValue: false, // Désactivé par défaut en développement
-  );
+  static bool get enableAnalytics =>
+      dotenv.env['ENABLE_ANALYTICS']?.toLowerCase() == 'true';
 
   /// Timeout pour les requêtes API (en secondes)
-  static const int apiTimeout = int.fromEnvironment(
-    'API_TIMEOUT',
-    defaultValue: 30,
-  );
+  static int get apiTimeout =>
+      int.tryParse(dotenv.env['API_TIMEOUT'] ?? '30') ?? 30;
 
   /// Version de l'API
-  static const String apiVersion = 'v1';
+  static String get apiVersion => dotenv.env['API_VERSION'] ?? 'v1';
 
   /// URL complète avec version
-  static String get fullApiUrl => '$apiBaseUrl';
+  static String get fullApiUrl => apiBaseUrl;
 
   /// Configuration selon l'environnement actuel
   static bool get isProduction => apiBaseUrl.contains('https://');
-  static bool get isDevelopment => apiBaseUrl.contains('localhost');
+  static bool get isDevelopment =>
+      apiBaseUrl.contains('127.0.0.1') || apiBaseUrl.contains('localhost');
   static bool get isStaging => apiBaseUrl.contains('staging');
+
+  /// Environnement actuel
+  static String get environment => dotenv.env['ENVIRONMENT'] ?? 'development';
 
   /// Headers par défaut pour les requêtes API
   static Map<String, String> get defaultHeaders => {
@@ -64,9 +66,13 @@ class AppConfig {
   static const Duration cacheValidityDuration = Duration(hours: 1);
 
   /// Configuration des fichiers et uploads
-  static const int maxFileSize = 10 * 1024 * 1024; // 10 MB
-  static const List<String> allowedImageFormats = ['jpg', 'jpeg', 'png'];
-  static const List<String> allowedDocumentFormats = ['pdf', 'doc', 'docx'];
+  static int get maxFileSize =>
+      int.tryParse(dotenv.env['MAX_FILE_SIZE'] ?? '10485760') ??
+      10485760; // 10 MB
+  static List<String> get allowedImageFormats =>
+      (dotenv.env['ALLOWED_IMAGE_FORMATS'] ?? 'jpg,jpeg,png').split(',');
+  static List<String> get allowedDocumentFormats =>
+      (dotenv.env['ALLOWED_DOCUMENT_FORMATS'] ?? 'pdf,doc,docx').split(',');
 
   /// Messages d'erreur standardisés
   static const String networkErrorMessage = 'Erreur de connexion réseau';
@@ -76,16 +82,11 @@ class AppConfig {
       'Session expirée, veuillez vous reconnecter';
 
   /// Configuration des notifications
-  static const String firebaseServerKey = String.fromEnvironment(
-    'FIREBASE_SERVER_KEY',
-    defaultValue: '',
-  );
+  static String get firebaseServerKey =>
+      dotenv.env['FIREBASE_SERVER_KEY'] ?? '';
 
   /// Configuration des cartes (si utilisées)
-  static const String googleMapsApiKey = String.fromEnvironment(
-    'GOOGLE_MAPS_API_KEY',
-    defaultValue: '',
-  );
+  static String get googleMapsApiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 
   /// Validation de la configuration
   static bool validateConfig() {

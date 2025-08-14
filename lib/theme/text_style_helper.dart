@@ -88,6 +88,18 @@ class TextStyleHelper {
         color: appTheme.whiteCustom,
       );
 
+  TextStyle get headline16Bold => TextStyle(
+        fontSize: 16.fSize,
+        fontWeight: FontWeight.w700,
+        color: appTheme.colorFF0F0B,
+      );
+
+  TextStyle get headline20Bold => TextStyle(
+        fontSize: 20.fSize,
+        fontWeight: FontWeight.w700,
+        color: appTheme.colorFF0F0B,
+      );
+
   // Body Styles
   TextStyle get body14Regular => TextStyle(
         fontSize: 14.fSize,
@@ -203,7 +215,7 @@ class TextStyleHelper {
       );
 
   // Other Styles
-  TextStyle get textStyle6 => TextStyle();
+  TextStyle get textStyle6 => const TextStyle();
 
-  TextStyle get textStyle7 => TextStyle();
+  TextStyle get textStyle7 => const TextStyle();
 }

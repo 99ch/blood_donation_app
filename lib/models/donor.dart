@@ -1,111 +1,77 @@
-/// Modèle de données pour un donneur de sang
+/// Modèle de données pour un donneur de sang - Aligné avec l'API Django
 class Donor {
   final int? id;
+  final int? user; // Relation avec User Django
   final String nom;
   final String prenoms;
-  final String? email;
-  final String? telephone;
-  final DateTime? dateNaissance;
-  final String? sexe;
-  final String? groupeSanguin;
-  final String? adresse;
-  final String? ville;
-  final String? pays;
-  final String? profession;
-  final String? situationMatrimoniale;
-  final String? personneContact;
-  final String? telephoneContact;
-  final bool? eligibleDon;
-  final DateTime? dernierDon;
-  final int nombreDons;
-  final DateTime? dateCreation;
-  final DateTime? dateModification;
-
+  final String email; // Requis dans Django
+  final String telephone; // Requis dans Django
+  final DateTime dateNaissance; // Requis dans Django (date_de_naissance)
+  final String? groupeSanguin; // groupe_sanguin dans Django
+  final String? localisation; // Nouveau champ Django
+  final double? poids; // Nouveau champ Django
+  final double? taille; // Nouveau champ Django
+  final String pays; // Requis dans Django avec choix
+  final int nbDons; // nb_dons dans Django
+  final double litresDonnes; // litres_donnes dans Django
+  final bool isVerified; // is_verified dans Django
   const Donor({
     this.id,
+    this.user,
     required this.nom,
     required this.prenoms,
-    this.email,
-    this.telephone,
-    this.dateNaissance,
-    this.sexe,
+    required this.email,
+    required this.telephone,
+    required this.dateNaissance,
     this.groupeSanguin,
-    this.adresse,
-    this.ville,
-    this.pays,
-    this.profession,
-    this.situationMatrimoniale,
-    this.personneContact,
-    this.telephoneContact,
-    this.eligibleDon,
-    this.dernierDon,
-    this.nombreDons = 0,
-    this.dateCreation,
-    this.dateModification,
+    this.localisation,
+    this.poids,
+    this.taille,
+    this.pays = 'benin', // Valeur par défaut Django
+    this.nbDons = 0,
+    this.litresDonnes = 0.0,
+    this.isVerified = false,
   });
 
-  /// Créer un Donor à partir d'un Map JSON
+  /// Créer un Donor à partir d'un Map JSON - Compatible avec l'API Django
   factory Donor.fromJson(Map<String, dynamic> json) {
     return Donor(
       id: json['id'] as int?,
+      user: json['user'] as int?,
       nom: json['nom'] as String,
       prenoms: json['prenoms'] as String,
-      email: json['email'] as String?,
-      telephone: json['telephone'] as String?,
-      dateNaissance: json['date_naissance'] != null
-          ? DateTime.parse(json['date_naissance'])
-          : null,
-      sexe: json['sexe'] as String?,
+      email: json['email'] as String,
+      telephone: json['telephone'] as String,
+      dateNaissance: DateTime.parse(json['date_de_naissance']),
       groupeSanguin: json['groupe_sanguin'] as String?,
-      adresse: json['adresse'] as String?,
-      ville: json['ville'] as String?,
-      pays: json['pays'] as String?,
-      profession: json['profession'] as String?,
-      situationMatrimoniale: json['situation_matrimoniale'] as String?,
-      personneContact: json['personne_contact'] as String?,
-      telephoneContact: json['telephone_contact'] as String?,
-      eligibleDon: json['eligible_don'] as bool?,
-      dernierDon: json['dernier_don'] != null
-          ? DateTime.parse(json['dernier_don'])
-          : null,
-      nombreDons: json['nombre_dons'] as int? ?? 0,
-      dateCreation: json['date_creation'] != null
-          ? DateTime.parse(json['date_creation'])
-          : null,
-      dateModification: json['date_modification'] != null
-          ? DateTime.parse(json['date_modification'])
-          : null,
+      localisation: json['localisation'] as String?,
+      poids: (json['poids'] as num?)?.toDouble(),
+      taille: (json['taille'] as num?)?.toDouble(),
+      pays: json['pays'] as String? ?? 'benin',
+      nbDons: json['nb_dons'] as int? ?? 0,
+      litresDonnes: (json['litres_donnes'] as num?)?.toDouble() ?? 0.0,
+      isVerified: json['is_verified'] as bool? ?? false,
     );
   }
 
-  /// Convertir en Map JSON
+  /// Convertir en Map JSON - Compatible avec l'API Django
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
+      if (user != null) 'user': user,
       'nom': nom,
       'prenoms': prenoms,
-      if (email != null) 'email': email,
-      if (telephone != null) 'telephone': telephone,
-      if (dateNaissance != null)
-        'date_naissance': dateNaissance!.toIso8601String().split('T')[0],
-      if (sexe != null) 'sexe': sexe,
+      'email': email,
+      'telephone': telephone,
+      'date_de_naissance': dateNaissance.toIso8601String().split('T')[0],
       if (groupeSanguin != null) 'groupe_sanguin': groupeSanguin,
-      if (adresse != null) 'adresse': adresse,
-      if (ville != null) 'ville': ville,
-      if (pays != null) 'pays': pays,
-      if (profession != null) 'profession': profession,
-      if (situationMatrimoniale != null)
-        'situation_matrimoniale': situationMatrimoniale,
-      if (personneContact != null) 'personne_contact': personneContact,
-      if (telephoneContact != null) 'telephone_contact': telephoneContact,
-      if (eligibleDon != null) 'eligible_don': eligibleDon,
-      if (dernierDon != null)
-        'dernier_don': dernierDon!.toIso8601String().split('T')[0],
-      'nombre_dons': nombreDons,
-      if (dateCreation != null)
-        'date_creation': dateCreation!.toIso8601String(),
-      if (dateModification != null)
-        'date_modification': dateModification!.toIso8601String(),
+      if (localisation != null) 'localisation': localisation,
+      if (poids != null) 'poids': poids,
+      if (taille != null) 'taille': taille,
+      'pays': pays,
+      'nb_dons': nbDons,
+      'litres_donnes': litresDonnes,
+      'is_verified': isVerified,
     };
   }
 
@@ -113,100 +79,81 @@ class Donor {
   String get nomComplet => '$prenoms $nom';
 
   /// Âge du donneur (approximatif)
-  int? get age {
-    if (dateNaissance == null) return null;
+  int get age {
     final now = DateTime.now();
-    int age = now.year - dateNaissance!.year;
-    if (now.month < dateNaissance!.month ||
-        (now.month == dateNaissance!.month && now.day < dateNaissance!.day)) {
+    int age = now.year - dateNaissance.year;
+    if (now.month < dateNaissance.month ||
+        (now.month == dateNaissance.month && now.day < dateNaissance.day)) {
       age--;
     }
     return age;
   }
 
   /// Vérifie si le donneur peut faire un don (délai minimum)
+  /// Note: Pour le moment, utilise un délai standard de 8 semaines
   bool get peutDonner {
-    if (eligibleDon == false) return false;
-    if (dernierDon == null) return true;
-
-    // Délai minimum de 8 semaines entre les dons pour les hommes
-    // et 12 semaines pour les femmes
-    final delaiMinimum = sexe == 'F' ? 12 : 8;
-    final prochainDonPossible =
-        dernierDon!.add(Duration(days: delaiMinimum * 7));
-
-    return DateTime.now().isAfter(prochainDonPossible);
+    // Pour le moment, se base sur isVerified et nbDons
+    return isVerified;
   }
 
   /// Date du prochain don possible
+  /// Note: À implémenter quand nous aurons les données de dernier don
   DateTime? get prochainDonPossible {
-    if (dernierDon == null) return null;
-    final delaiMinimum = sexe == 'F' ? 12 : 8;
-    return dernierDon!.add(Duration(days: delaiMinimum * 7));
+    // À implémenter avec les vraies données de dernier don
+    return null;
   }
 
   /// Statut du donneur
   String get statut {
-    if (eligibleDon == false) return 'Non éligible';
+    if (!isVerified) return 'Non vérifié';
     if (peutDonner) return 'Disponible';
     return 'En attente';
   }
 
   /// Niveau de badge basé sur le nombre de dons
   String get niveauBadge {
-    if (nombreDons >= 50) return 'Sauveur de Vie';
-    if (nombreDons >= 25) return 'Champion';
-    if (nombreDons >= 10) return 'Donneur Héros';
-    if (nombreDons >= 5) return 'Donneur Régulier';
-    if (nombreDons >= 1) return 'Premier Don';
+    if (nbDons >= 50) return 'Sauveur de Vie';
+    if (nbDons >= 25) return 'Champion';
+    if (nbDons >= 10) return 'Donneur Héros';
+    if (nbDons >= 5) return 'Donneur Régulier';
+    if (nbDons >= 1) return 'Premier Don';
     return 'Nouveau';
   }
 
   /// Copier avec des modifications
   Donor copyWith({
     int? id,
+    int? user,
     String? nom,
     String? prenoms,
     String? email,
     String? telephone,
     DateTime? dateNaissance,
-    String? sexe,
     String? groupeSanguin,
-    String? adresse,
-    String? ville,
+    String? localisation,
+    double? poids,
+    double? taille,
     String? pays,
-    String? profession,
-    String? situationMatrimoniale,
-    String? personneContact,
-    String? telephoneContact,
-    bool? eligibleDon,
-    DateTime? dernierDon,
-    int? nombreDons,
-    DateTime? dateCreation,
-    DateTime? dateModification,
+    int? nbDons,
+    double? litresDonnes,
+    bool? isVerified,
   }) {
     return Donor(
       id: id ?? this.id,
+      user: user ?? this.user,
       nom: nom ?? this.nom,
       prenoms: prenoms ?? this.prenoms,
       email: email ?? this.email,
       telephone: telephone ?? this.telephone,
       dateNaissance: dateNaissance ?? this.dateNaissance,
-      sexe: sexe ?? this.sexe,
       groupeSanguin: groupeSanguin ?? this.groupeSanguin,
-      adresse: adresse ?? this.adresse,
-      ville: ville ?? this.ville,
+      localisation: localisation ?? this.localisation,
+      poids: poids ?? this.poids,
+      taille: taille ?? this.taille,
       pays: pays ?? this.pays,
-      profession: profession ?? this.profession,
-      situationMatrimoniale:
-          situationMatrimoniale ?? this.situationMatrimoniale,
-      personneContact: personneContact ?? this.personneContact,
-      telephoneContact: telephoneContact ?? this.telephoneContact,
-      eligibleDon: eligibleDon ?? this.eligibleDon,
-      dernierDon: dernierDon ?? this.dernierDon,
-      nombreDons: nombreDons ?? this.nombreDons,
-      dateCreation: dateCreation ?? this.dateCreation,
-      dateModification: dateModification ?? this.dateModification,
+      nbDons: nbDons ?? this.nbDons,
+      litresDonnes: litresDonnes ?? this.litresDonnes,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 

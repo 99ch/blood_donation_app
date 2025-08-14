@@ -169,8 +169,9 @@ class Campaign {
     if (estEnCours) return 'Aujourd\'hui';
     if (joursRestants == 1) return 'Demain';
     if (joursRestants < 7) return 'Dans $joursRestants jours';
-    if (joursRestants < 30)
+    if (joursRestants < 30) {
       return 'Dans ${(joursRestants / 7).floor()} semaines';
+    }
     return 'Dans ${(joursRestants / 30).floor()} mois';
   }
 

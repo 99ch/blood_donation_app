@@ -2,20 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../core/app_export.dart';
 
-/**
- * CustomInputField - A reusable input field component with email support, shadow effects, and validation
- * 
- * @param controller - TextEditingController for managing input text
- * @param hintText - Placeholder text displayed when field is empty
- * @param keyboardType - Type of keyboard to display (email, text, etc.)
- * @param validator - Function to validate input text
- * @param isRequired - Whether the field is required for form submission
- * @param onChanged - Callback function triggered when text changes
- * @param enabled - Whether the input field is enabled for interaction
- */
+/// CustomInputField - A reusable input field component with email support, shadow effects, and validation
+/// 
+/// @param controller - TextEditingController for managing input text
+/// @param hintText - Placeholder text displayed when field is empty
+/// @param keyboardType - Type of keyboard to display (email, text, etc.)
+/// @param validator - Function to validate input text
+/// @param isRequired - Whether the field is required for form submission
+/// @param onChanged - Callback function triggered when text changes
+/// @param enabled - Whether the input field is enabled for interaction
 class CustomInputField extends StatelessWidget {
   const CustomInputField({
-    Key? key,
+    super.key,
     this.controller,
     this.hintText,
     this.keyboardType,
@@ -24,7 +22,7 @@ class CustomInputField extends StatelessWidget {
     this.onChanged,
     this.enabled,
     this.obscureText = false,
-  }) : super(key: key);
+  });
 
   /// Controller for managing the input text
   final TextEditingController? controller;
@@ -60,7 +58,7 @@ class CustomInputField extends StatelessWidget {
         borderRadius: BorderRadius.circular(5.h),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF9A9A9A).withAlpha(64),
+            color: const Color(0xFF9A9A9A).withAlpha(64),
             offset: Offset(8.h, 8.h),
             blurRadius: 16.h,
             spreadRadius: 0,
@@ -78,7 +76,7 @@ class CustomInputField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText ?? "example@gmail.com",
           hintStyle: TextStyleHelper.instance.title20Lexend
-              .copyWith(color: Color(0xFF444444).withAlpha(128), height: 1.25),
+              .copyWith(color: const Color(0xFF444444).withAlpha(128), height: 1.25),
           contentPadding: EdgeInsets.symmetric(horizontal: 16.h),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,

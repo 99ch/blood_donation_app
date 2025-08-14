@@ -45,11 +45,30 @@ Cette application facilite le processus de don de sang en offrant une plateforme
 - Suivi des accomplissements
 - Motivation gamifiée
 
-### 📊 Suivi Médical
+### 📊 Suivi Médical Complet
 
-- Historique des tests sanguins
-- Résultats d'analyses
-- Carnet de santé numérique
+- Historique détaillé des tests sanguins
+- Upload et gestion des résultats d'analyses PDF
+- Vérification médicale par le staff (workflow approuvé)
+- Carnet de santé numérique sécurisé
+- Notifications automatiques des résultats
+
+### 📱 Nouvelles Fonctionnalités
+
+#### Configuration API Dynamique
+- Interface de configuration de l'URL API avec presets
+- Test de connexion intégré en temps réel
+- Support de multiples environnements (dev/staging/prod)
+
+#### Système de Notifications Push
+- Notifications catégorisées (urgence, rappel, information, etc.)
+- Gestion complète (marquer comme lu, supprimer, actions en masse)
+- Interface utilisateur dédiée avec badges visuels
+
+#### Visualisation Avancée
+- Graphiques interactifs du volume de sang donné
+- Statistiques personnalisées de don
+- Historique visuel des contributions
 
 ## 🏗️ Architecture du Projet
 
@@ -60,7 +79,7 @@ lib/
 ├── core/                       # Configuration et utilitaires centraux
 │   ├── app_export.dart        # Exports globaux
 │   └── utils/                 # Utilitaires partagés
-├── presentation/              # Couche de présentation (UI)
+├── screens/              # Couche de présentation (UI)
 │   ├── account_registration_screen/
 │   ├── authentication_screen/
 │   ├── badges_management_screen/
@@ -94,7 +113,7 @@ lib/
 - **app_export.dart** : Centralise tous les imports nécessaires
 - **utils/** : Fonctions utilitaires et helpers
 
-#### `presentation/`
+#### `screens/`
 
 Contient tous les écrans de l'application, organisés par fonctionnalité :
 
@@ -264,3 +283,9 @@ Pour toute question ou support :
 ---
 
 _Développé avec ❤️ pour faciliter les dons de sang et sauver des vies._
+
+---
+
+**Version actuelle** : 1.0.0 - Août 2025  
+**Backend requis** : Django REST Framework avec endpoints complets  
+**Documentation complète** : Voir `ARCHITECTURE.md`, `API_DOCUMENTATION.md`, `INTEGRATION_GUIDE.md`

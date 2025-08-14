@@ -1,0 +1,233 @@
+name: Build iOS
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+
+jobs:
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    strategy:
+      matrix:
+        build-type: [debug, release]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create environment configuration
+      run: |
+        if [ "${{ matrix.build-type }}" = "release" ]; then
+          echo "API_BASE_URL=https://api.blooddonation.com/api" > .env
+          echo "ENVIRONMENT=production" >> .env
+          echo "ENABLE_LOGGING=false" >> .env
+        else
+          echo "API_BASE_URL=http://127.0.0.1:8000/api" > .env
+          echo "ENVIRONMENT=development" >> .env
+          echo "ENABLE_LOGGING=true" >> .env
+        fi
+        cat .env
+
+    - name: Setup CocoaPods
+      run: |
+        cd ios
+        pod install
+        cd ..
+
+    - name: Configure iOS signing (Release only)
+      if: matrix.build-type == 'release'
+      run: |
+        echo "Configuring iOS code signing for release build"
+        # Les certificats et profils de provisioning doivent être configurés
+        # dans les secrets GitHub:
+        # - IOS_CERTIFICATE_BASE64
+        # - IOS_CERTIFICATE_PASSWORD
+        # - IOS_PROVISIONING_PROFILE_BASE64
+        # - KEYCHAIN_PASSWORD
+        
+        # Créer un keychain temporaire
+        security create-keychain -p "${{ secrets.KEYCHAIN_PASSWORD || 'temp_password' }}" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD || 'temp_password' }}" build.keychain
+        
+        # Note: Ici vous devrez ajouter les étapes pour importer les certificats
+        # echo "${{ secrets.IOS_CERTIFICATE_BASE64 }}" | base64 -d > certificate.p12
+        # security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
+        
+        echo "⚠️  iOS code signing configuration is required for release builds"
+
+    - name: Build iOS (Debug)
+      if: matrix.build-type == 'debug'
+      run: |
+        echo "Building iOS debug build..."
+        flutter build ios --debug --no-codesign --verbose
+        
+        # Créer un simulateur build pour les tests
+        cd ios
+        xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 14' build
+        cd ..
+
+    - name: Build iOS (Release)
+      if: matrix.build-type == 'release'
+      run: |
+        echo "Building iOS release build..."
+        # Pour la release, nous aurions besoin de la signature de code
+        # flutter build ios --release --verbose
+        # flutter build ipa --release --verbose
+        
+        echo "⚠️  Release build requires proper code signing setup"
+        echo "Building without code signing for demonstration..."
+        flutter build ios --release --no-codesign --verbose
+
+    - name: Archive iOS app (Release only)
+      if: matrix.build-type == 'release'
+      run: |
+        echo "Creating iOS archive..."
+        cd ios
+        # xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release archive -archivePath Runner.xcarchive
+        echo "Archive step would run here with proper signing"
+        cd ..
+
+    - name: Export IPA (Release only)
+      if: matrix.build-type == 'release'
+      run: |
+        echo "Exporting IPA..."
+        # xcodebuild -exportArchive -archivePath ios/Runner.xcarchive -exportPath ios/build -exportOptionsPlist ios/ExportOptions.plist
+        echo "IPA export would run here with proper signing"
+
+    - name: Get build info
+      id: build-info
+      run: |
+        if [ "${{ matrix.build-type }}" = "debug" ]; then
+          BUILD_PATH="build/ios/Debug-iphonesimulator/Runner.app"
+          if [ -d "$BUILD_PATH" ]; then
+            BUILD_SIZE=$(du -sh "$BUILD_PATH" | cut -f1)
+            echo "build_path=$BUILD_PATH" >> $GITHUB_OUTPUT
+            echo "build_size=$BUILD_SIZE" >> $GITHUB_OUTPUT
+          else
+            echo "build_path=not_found" >> $GITHUB_OUTPUT
+            echo "build_size=unknown" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "build_path=ios/Runner.ipa" >> $GITHUB_OUTPUT
+          echo "build_size=pending_signing" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload iOS build artifact (Debug)
+      if: matrix.build-type == 'debug' && steps.build-info.outputs.build_path != 'not_found'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-debug-build
+        path: ${{ steps.build-info.outputs.build_path }}
+        retention-days: 7
+
+    - name: Upload IPA artifact (Release)
+      if: matrix.build-type == 'release'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-ipa-release
+        path: ios/Runner.ipa
+        retention-days: 90
+        if-no-files-found: warn
+
+    - name: Create release summary
+      run: |
+        echo "## 📱 iOS Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: ${{ matrix.build-type }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Size**: ${{ steps.build-info.outputs.build_size }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Flutter Version**: $(flutter --version | head -1)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Xcode Version**: $(xcodebuild -version | head -1)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ matrix.build-type }}" = "release" ]; then
+          echo "- **⚠️ Code Signing**: Requires setup for production builds" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Job de tests sur simulateur iOS
+  test-ios:
+    name: Test on iOS Simulator
+    runs-on: macos-latest
+    timeout-minutes: 30
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create .env file
+      run: |
+        echo "API_BASE_URL=http://127.0.0.1:8000/api" > .env
+        echo "ENVIRONMENT=test" >> .env
+        echo "ENABLE_LOGGING=true" >> .env
+
+    - name: Setup CocoaPods
+      run: |
+        cd ios
+        pod install
+        cd ..
+
+    - name: List available simulators
+      run: |
+        xcrun simctl list devices
+        flutter devices
+
+    - name: Start iOS simulator
+      run: |
+        # Démarrer le simulateur iPhone 14
+        SIMULATOR_ID=$(xcrun simctl list devices | grep "iPhone 14" | head -1 | grep -o '[A-F0-9-]\{36\}')
+        if [ ! -z "$SIMULATOR_ID" ]; then
+          echo "Starting simulator: $SIMULATOR_ID"
+          xcrun simctl boot $SIMULATOR_ID
+          sleep 10
+        fi
+
+    - name: Run integration tests on simulator
+      run: |
+        echo "Running integration tests on iOS simulator..."
+        flutter devices
+        # flutter drive --target=test_driver/app.dart -d ios || echo "Integration tests completed"
+        echo "Integration tests would run here"
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-test-results
+        path: test-results/
+        retention-days: 7
+        if-no-files-found: ignore
