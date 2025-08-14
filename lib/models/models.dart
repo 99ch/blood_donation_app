@@ -1,4 +1,5 @@
 /// Export de tous les modèles de données de l'application
+library;
 
 // Modèles utilisateur et authentification
 export 'user.dart';

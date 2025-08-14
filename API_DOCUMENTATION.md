@@ -6,14 +6,56 @@ L'application Blood Donation App communique avec un backend Django REST Framewor
 
 ## 🔧 Configuration de Base
 
-- **URL de Base** : `http://localhost:8000/api` (développement)
+- **URL de Base** : `http://127.0.0.1:8000/api` (développement) - Configurable via fichier .env ou écran de configuration API
 - **Format** : JSON
-- **Authentification** : JWT (JSON Web Tokens)
+- **Authentification** : JWT (JSON Web Tokens) avec refresh automatique
 - **Version API** : v1
+- **Headers par défaut** : `Content-Type: application/json`, `Accept: application/json`
 
 ## 🔐 Authentification
 
-### Inscription d'un utilisateur
+### Inscription unifiée (Recommandé)
+
+```http
+POST /register/complete/
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "motdepasse123",
+  "nom": "Dupont",
+  "prenoms": "Jean",
+  "telephone": "+33123456789",
+  "date_de_naissance": "1990-01-15",
+  "pays": "benin"
+}
+```
+
+**Réponse (201 Created)**
+
+```json
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "first_name": "Jean",
+    "last_name": "Dupont"
+  },
+  "donneur": {
+    "id": 1,
+    "nom": "Dupont",
+    "prenoms": "Jean",
+    "email": "user@example.com",
+    "telephone": "+33123456789",
+    "date_de_naissance": "1990-01-15",
+    "pays": "benin"
+  },
+  "message": "Inscription complète réussie"
+}
+```
+
+### Inscription d'un utilisateur (Classique)
 
 ```http
 POST /auth/users/
@@ -22,9 +64,7 @@ Content-Type: application/json
 {
   "username": "user@example.com",
   "email": "user@example.com",
-  "password": "motdepasse123",
-  "nom": "Dupont",
-  "prenoms": "Jean"
+  "password": "motdepasse123"
 }
 ```
 
@@ -80,6 +120,21 @@ GET /auth/users/me/
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
 ```
 
+### Complétion du profil donneur
+
+```http
+POST /profile/complete/
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "groupe_sanguin": "O+",
+  "localisation": "Paris",
+  "poids": 70.5,
+  "taille": 1750
+}
+```
+
 ## 👤 Gestion des Donneurs
 
 ### Liste des donneurs
@@ -95,21 +150,22 @@ Authorization: Bearer {token}
 [
   {
     "id": 1,
+    "user": 1,
     "nom": "Dupont",
     "prenoms": "Jean",
     "email": "jean.dupont@email.com",
     "telephone": "+33123456789",
-    "date_naissance": "1990-01-15",
-    "sexe": "M",
+    "date_de_naissance": "1990-01-15",
     "groupe_sanguin": "O+",
-    "adresse": "123 Rue de la Paix",
-    "ville": "Paris",
-    "pays": "France",
-    "profession": "Ingénieur",
-    "eligible_don": true,
-    "dernier_don": "2025-06-15",
-    "nombre_dons": 5,
-    "date_creation": "2025-01-01T10:00:00Z"
+    "localisation": "Paris",
+    "poids": 70.5,
+    "taille": 1750,
+    "pays": "benin",
+    "nb_dons": 5,
+    "litres_donnes": 2.5,
+    "is_verified": true,
+    "date_creation": "2025-01-01T10:00:00Z",
+    "date_modification": "2025-07-29T10:00:00Z"
   }
 ]
 ```
@@ -126,13 +182,12 @@ Content-Type: application/json
   "prenoms": "Marie",
   "email": "marie.martin@email.com",
   "telephone": "+33987654321",
-  "date_naissance": "1985-03-20",
-  "sexe": "F",
+  "date_de_naissance": "1985-03-20",
   "groupe_sanguin": "A+",
-  "adresse": "456 Avenue des Fleurs",
-  "ville": "Lyon",
-  "pays": "France",
-  "profession": "Médecin"
+  "localisation": "Lyon",
+  "poids": 65.0,
+  "taille": 1650,
+  "pays": "benin"
 }
 ```
 
@@ -153,7 +208,28 @@ Content-Type: application/json
 {
   "nom": "Martin",
   "prenoms": "Marie-Claire",
-  "telephone": "+33987654322"
+  "telephone": "+33987654322",
+  "groupe_sanguin": "A+",
+  "poids": 66.0
+}
+```
+
+### Rechercher un donneur par nom
+
+```http
+GET /donneurs/by_nom_prenom/?nom=Martin&prenoms=Marie&date_de_naissance=1985-03-20
+Authorization: Bearer {token}
+```
+
+### Enregistrer un don
+
+```http
+POST /donneurs/{id}/enregistrer_don/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "litres_donnes": 0.5
 }
 ```
 
@@ -244,12 +320,25 @@ Authorization: Bearer {token}
 ### Ajouter un résultat d'analyse
 
 ```http
-POST /donneurs/{donneur_id}/ajouter_resultat/
+POST /resultats/{donneur_id}/ajouter_resultat/
 Authorization: Bearer {token}
 Content-Type: multipart/form-data
 
 fichier_pdf: [fichier PDF]
-type_analyse: "Sérologie complète"
+```
+
+### Vérifier une analyse (Staff uniquement)
+
+```http
+POST /resultats/{analyse_id}/verifier_analyse/
+Authorization: Bearer {token}
+```
+
+### Envoyer les résultats vérifiés par email
+
+```http
+POST /resultats/envoyer_resultats_verifies/
+Authorization: Bearer {token}
 ```
 
 ## 🎯 Campagnes de Don
@@ -300,17 +389,17 @@ Content-Type: application/json
 }
 ```
 
-### Participer à une campagne
+### Campagnes urgentes
 
 ```http
-POST /campagnes/{id}/participer/
-Authorization: Bearer {token}
-Content-Type: application/json
+GET /campagnes/urgentes/
+```
 
-{
-  "donneur_id": 1,
-  "commentaire": "Je confirme ma participation"
-}
+### S'inscrire à une campagne
+
+```http
+POST /campagnes/{id}/inscrire/
+Authorization: Bearer {token}
 ```
 
 ## 🏥 Centres de Collecte
@@ -346,6 +435,30 @@ GET /centres/
 GET /centres/{id}/
 ```
 
+## 💉 Gestion des Dons
+
+### Liste des dons
+
+```http
+GET /dons/
+Authorization: Bearer {token}
+```
+
+### Créer un don
+
+```http
+POST /dons/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "donneur": 1,
+  "campagne": 1,
+  "date_don": "2025-08-15",
+  "litres_donnes": 0.5
+}
+```
+
 ## 📱 Notifications
 
 ### Liste des notifications utilisateur
@@ -355,16 +468,50 @@ GET /notifications/
 Authorization: Bearer {token}
 ```
 
+**Réponse (200 OK)**
+
+```json
+{
+  "results": [
+    {
+      "id": 1,
+      "titre": "Nouvelle campagne urgente",
+      "message": "Une campagne urgente a été créée près de chez vous.",
+      "type": "urgent",
+      "lue": false,
+      "date_creation": "2025-08-01T10:00:00Z",
+      "donnees": {
+        "campagne_id": 5
+      }
+    }
+  ]
+}
+```
+
 ### Marquer une notification comme lue
 
 ```http
-PATCH /notifications/{id}/
+PATCH /notifications/{id}/marquer_lue/
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "lu": true
+  "lue": true
 }
+```
+
+### Marquer toutes les notifications comme lues
+
+```http
+POST /notifications/marquer_toutes_lues/
+Authorization: Bearer {token}
+```
+
+### Supprimer une notification
+
+```http
+DELETE /notifications/{id}/
+Authorization: Bearer {token}
 ```
 
 ## 📊 Statistiques
@@ -401,7 +548,7 @@ Authorization: Bearer {token}
 ### Rechercher des donneurs
 
 ```http
-GET /donneurs/?search=jean&groupe_sanguin=O+&ville=Paris
+GET /donneurs/?nom=jean&groupe_sanguin=O+&localisation=Paris
 Authorization: Bearer {token}
 ```
 
@@ -409,6 +556,12 @@ Authorization: Bearer {token}
 
 ```http
 GET /campagnes/?urgence=haute&date_debut=2025-08-01&date_fin=2025-08-31
+```
+
+### Centres proches d'une position
+
+```http
+GET /centres/proches/?latitude=48.8566&longitude=2.3522
 ```
 
 ## 📄 Pagination
@@ -463,19 +616,61 @@ X-API-Version: v1
 
 ### Développement
 
-- URL : `http://localhost:8000/api`
-- Documentation : `http://localhost:8000/api/docs/`
+- URL : `http://127.0.0.1:8000/api` (configurable)
+- Documentation : `http://127.0.0.1:8000/swagger/`
+- Configuration : Via fichier `.env` ou écran de configuration API dans l'app
 
 ### Test/Staging
 
 - URL : `https://staging-api.blood-donation.com/api`
-- Documentation : `https://staging-api.blood-donation.com/api/docs/`
+- Documentation : `https://staging-api.blood-donation.com/swagger/`
 
 ### Production
 
 - URL : `https://api.blood-donation.com/api`
-- Documentation : `https://api.blood-donation.com/api/docs/`
+- Documentation : `https://api.blood-donation.com/swagger/`
+
+## 📲 Configuration de l'App Mobile
+
+### Changement d'URL API
+
+L'application Flutter permet de configurer l'URL API de plusieurs façons :
+
+1. **Via l'écran de configuration** : Accessible depuis l'authentification
+2. **Via le fichier .env** :
+   ```
+   API_BASE_URL=http://127.0.0.1:8000/api
+   ENVIRONMENT=development
+   ENABLE_LOGGING=true
+   ```
+
+### URLs prédéfinies disponibles
+
+- **Local Django** : `http://localhost:8000/api`
+- **Local Django (IP)** : `http://127.0.0.1:8000/api`
+- **Staging** : `https://staging-api.blooddonation.com/api`
+- **Production** : `https://api.blooddonation.com/api`
+
+## 🔄 Fonctionnalités Avancées
+
+### Logging automatique
+
+L'application Flutter inclut un système de logging automatique pour toutes les requêtes API :
+- ✅ Succès : `API Success: POST http://127.0.0.1:8000/api/auth/jwt/create/`
+- ❌ Erreurs : `API Error: GET http://127.0.0.1:8000/api/donneurs/ - Status Code: 401`
+
+### Gestion automatique des tokens
+
+- Rafraîchissement automatique des tokens JWT avant expiration
+- Stockage sécurisé avec SharedPreferences
+- Redirection automatique vers la connexion si le token expire
+
+### Validation des formulaires
+
+- Validation côté client avant envoi
+- Messages d'erreur localisés
+- Gestion des erreurs réseau avec retry automatique
 
 ---
 
-_Cette documentation est maintenue à jour avec chaque version de l'API._
+_Cette documentation est maintenue à jour avec chaque version de l'API. Dernière mise à jour : Août 2025_

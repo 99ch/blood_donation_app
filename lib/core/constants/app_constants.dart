@@ -1,4 +1,5 @@
 /// Constantes globales de l'application Blood Donation App
+library;
 
 class AppConstants {
   // Private constructor pour empêcher l'instanciation

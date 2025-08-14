@@ -1,0 +1,385 @@
+name: Deploy to Stores
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'Deployment target'
+        required: true
+        type: choice
+        options:
+        - google-play-internal
+        - google-play-alpha
+        - google-play-beta
+        - google-play-production
+        - app-store-testflight
+        - app-store-production
+        - firebase-app-distribution
+        - all-stores
+      version_tag:
+        description: 'Version tag to deploy (e.g., v1.0.0)'
+        required: true
+      release_notes:
+        description: 'Release notes for this deployment'
+        required: false
+
+jobs:
+  # Job 1: Validation du déploiement
+  deploy-validation:
+    name: Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      should_deploy_android: ${{ steps.targets.outputs.android }}
+      should_deploy_ios: ${{ steps.targets.outputs.ios }}
+      should_deploy_firebase: ${{ steps.targets.outputs.firebase }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.version_tag }}
+
+    - name: Validate deployment target
+      id: targets
+      run: |
+        TARGET="${{ github.event.inputs.deploy_target }}"
+        
+        case $TARGET in
+          google-play-*|all-stores)
+            echo "android=true" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "android=false" >> $GITHUB_OUTPUT
+            ;;
+        esac
+        
+        case $TARGET in
+          app-store-*|all-stores)
+            echo "ios=true" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "ios=false" >> $GITHUB_OUTPUT
+            ;;
+        esac
+        
+        case $TARGET in
+          firebase-app-distribution|all-stores)
+            echo "firebase=true" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "firebase=false" >> $GITHUB_OUTPUT
+            ;;
+        esac
+        
+        echo "Deployment targets:"
+        echo "Android: $([ "$TARGET" = *"google-play"* ] || [ "$TARGET" = "all-stores" ] && echo "true" || echo "false")"
+        echo "iOS: $([ "$TARGET" = *"app-store"* ] || [ "$TARGET" = "all-stores" ] && echo "true" || echo "false")"
+        echo "Firebase: $([ "$TARGET" = "firebase-app-distribution" ] || [ "$TARGET" = "all-stores" ] && echo "true" || echo "false")"
+
+    - name: Verify release assets
+      run: |
+        echo "Verifying release assets for ${{ github.event.inputs.version_tag }}"
+        
+        # Vérifier que la release existe
+        RELEASE_URL="https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.version_tag }}"
+        
+        if curl -s "$RELEASE_URL" | grep -q "Not Found"; then
+          echo "❌ Release ${{ github.event.inputs.version_tag }} not found"
+          exit 1
+        else
+          echo "✅ Release ${{ github.event.inputs.version_tag }} found"
+        fi
+
+  # Job 2: Déploiement Google Play
+  deploy-google-play:
+    name: Deploy to Google Play
+    runs-on: ubuntu-latest
+    needs: deploy-validation
+    if: needs.deploy-validation.outputs.should_deploy_android == 'true'
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Google Play Service Account
+      run: |
+        echo "Setting up Google Play Console API access..."
+        
+        # Le secret GOOGLE_PLAY_SERVICE_ACCOUNT_JSON doit contenir
+        # les credentials JSON du service account Google Play
+        if [ -z "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" ]; then
+          echo "⚠️  GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret not configured"
+          echo "Please configure Google Play Console API access"
+          exit 1
+        fi
+        
+        echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" > google-play-key.json
+        echo "Google Play service account configured"
+
+    - name: Download AAB from release
+      run: |
+        VERSION_TAG="${{ github.event.inputs.version_tag }}"
+        VERSION=${VERSION_TAG#v}
+        
+        echo "Downloading AAB for version $VERSION"
+        
+        # Télécharger l'AAB depuis la release GitHub
+        gh release download $VERSION_TAG --pattern "*aab*" --dir ./downloads/
+        
+        AAB_FILE=$(find ./downloads -name "*.aab" | head -1)
+        if [ -z "$AAB_FILE" ]; then
+          echo "❌ AAB file not found in release"
+          exit 1
+        fi
+        
+        echo "AAB file: $AAB_FILE"
+        echo "AAB_FILE=$AAB_FILE" >> $GITHUB_ENV
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to Google Play
+      run: |
+        TARGET="${{ github.event.inputs.deploy_target }}"
+        
+        case $TARGET in
+          google-play-internal)
+            TRACK="internal"
+            ;;
+          google-play-alpha)
+            TRACK="alpha"
+            ;;
+          google-play-beta)
+            TRACK="beta"
+            ;;
+          google-play-production|all-stores)
+            TRACK="production"
+            ;;
+        esac
+        
+        echo "Deploying to Google Play - Track: $TRACK"
+        echo "AAB: $AAB_FILE"
+        
+        # Ici vous utiliseriez l'API Google Play Console ou fastlane
+        # Exemple avec fastlane:
+        # fastlane android deploy track:$TRACK aab:$AAB_FILE
+        
+        echo "✅ Deployment to Google Play ($TRACK) would be executed here"
+        echo "Required: fastlane or Google Play Console API integration"
+
+    - name: Update deployment status
+      run: |
+        echo "Google Play deployment completed for track: $TRACK"
+        
+        # Optionnel: Mettre à jour un système de suivi des déploiements
+        # ou envoyer des notifications
+
+  # Job 3: Déploiement App Store
+  deploy-app-store:
+    name: Deploy to App Store
+    runs-on: macos-latest
+    needs: deploy-validation
+    if: needs.deploy-validation.outputs.should_deploy_ios == 'true'
+    timeout-minutes: 45
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup App Store Connect API
+      run: |
+        echo "Setting up App Store Connect API access..."
+        
+        # Les secrets suivants doivent être configurés:
+        # - APP_STORE_CONNECT_API_KEY_ID
+        # - APP_STORE_CONNECT_ISSUER_ID
+        # - APP_STORE_CONNECT_API_KEY_CONTENT (base64 encoded .p8 file)
+        
+        if [ -z "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" ]; then
+          echo "⚠️  App Store Connect API credentials not configured"
+          echo "Please configure ASC_API_KEY_ID, ASC_ISSUER_ID, and ASC_API_KEY_CONTENT"
+          exit 1
+        fi
+        
+        echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" | base64 -d > AuthKey.p8
+        echo "App Store Connect API configured"
+
+    - name: Download or build IPA
+      run: |
+        VERSION_TAG="${{ github.event.inputs.version_tag }}"
+        
+        echo "Looking for IPA in release $VERSION_TAG"
+        
+        # Télécharger l'IPA depuis la release si disponible
+        gh release download $VERSION_TAG --pattern "*ipa*" --dir ./downloads/ || echo "No IPA in release"
+        
+        IPA_FILE=$(find ./downloads -name "*.ipa" 2>/dev/null | head -1)
+        
+        if [ -z "$IPA_FILE" ]; then
+          echo "No IPA found in release, would need to build with proper signing"
+          echo "⚠️  iOS deployment requires proper code signing and IPA build"
+          exit 1
+        fi
+        
+        echo "IPA file: $IPA_FILE"
+        echo "IPA_FILE=$IPA_FILE" >> $GITHUB_ENV
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to App Store Connect
+      run: |
+        TARGET="${{ github.event.inputs.deploy_target }}"
+        
+        case $TARGET in
+          app-store-testflight)
+            echo "Uploading to TestFlight..."
+            # xcrun altool --upload-app --file "$IPA_FILE" --type ios --apiKey "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
+            ;;
+          app-store-production|all-stores)
+            echo "Uploading to App Store for review..."
+            # xcrun altool --upload-app --file "$IPA_FILE" --type ios --apiKey "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
+            ;;
+        esac
+        
+        echo "✅ App Store deployment would be executed here"
+        echo "Required: Properly signed IPA and App Store Connect API setup"
+
+  # Job 4: Déploiement Firebase App Distribution
+  deploy-firebase:
+    name: Deploy to Firebase App Distribution
+    runs-on: ubuntu-latest
+    needs: deploy-validation
+    if: needs.deploy-validation.outputs.should_deploy_firebase == 'true'
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Firebase CLI
+      run: |
+        npm install -g firebase-tools
+        echo "Firebase CLI installed"
+
+    - name: Download APK from release
+      run: |
+        VERSION_TAG="${{ github.event.inputs.version_tag }}"
+        
+        gh release download $VERSION_TAG --pattern "*apk*" --dir ./downloads/
+        
+        APK_FILE=$(find ./downloads -name "*.apk" | head -1)
+        if [ -z "$APK_FILE" ]; then
+          echo "❌ APK file not found in release"
+          exit 1
+        fi
+        
+        echo "APK file: $APK_FILE"
+        echo "APK_FILE=$APK_FILE" >> $GITHUB_ENV
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to Firebase App Distribution
+      run: |
+        RELEASE_NOTES="${{ github.event.inputs.release_notes }}"
+        if [ -z "$RELEASE_NOTES" ]; then
+          RELEASE_NOTES="Deployment via GitHub Actions for ${{ github.event.inputs.version_tag }}"
+        fi
+        
+        echo "Deploying to Firebase App Distribution..."
+        echo "APK: $APK_FILE"
+        echo "Release notes: $RELEASE_NOTES"
+        
+        # firebase appdistribution:distribute "$APK_FILE" \
+        #   --app "${{ secrets.FIREBASE_APP_ID }}" \
+        #   --groups "testers" \
+        #   --release-notes "$RELEASE_NOTES" \
+        #   --token "${{ secrets.FIREBASE_TOKEN }}"
+        
+        echo "✅ Firebase App Distribution deployment would be executed here"
+        echo "Required: FIREBASE_APP_ID and FIREBASE_TOKEN secrets"
+
+  # Job 5: Résumé et notifications post-déploiement
+  post-deployment:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-validation, deploy-google-play, deploy-app-store, deploy-firebase]
+    if: always()
+
+    steps:
+    - name: Deployment summary
+      run: |
+        TARGET="${{ github.event.inputs.deploy_target }}"
+        VERSION="${{ github.event.inputs.version_tag }}"
+        
+        echo "## 🚀 Deployment Summary for $VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "- **Target**: $TARGET" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deployment Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Deployment Results" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.deploy-google-play.result }}" != "" ]; then
+          if [ "${{ needs.deploy-google-play.result }}" = "success" ]; then
+            echo "- **Google Play**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Google Play**: ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        if [ "${{ needs.deploy-app-store.result }}" != "" ]; then
+          if [ "${{ needs.deploy-app-store.result }}" = "success" ]; then
+            echo "- **App Store**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **App Store**: ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        if [ "${{ needs.deploy-firebase.result }}" != "" ]; then
+          if [ "${{ needs.deploy-firebase.result }}" = "success" ]; then
+            echo "- **Firebase App Distribution**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Firebase App Distribution**: ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Post-Deployment Checklist" >> $GITHUB_STEP_SUMMARY
+        echo "- [ ] Monitor app store reviews and feedback" >> $GITHUB_STEP_SUMMARY
+        echo "- [ ] Check crash reporting and analytics" >> $GITHUB_STEP_SUMMARY
+        echo "- [ ] Verify backend API compatibility" >> $GITHUB_STEP_SUMMARY
+        echo "- [ ] Update documentation if needed" >> $GITHUB_STEP_SUMMARY
+        echo "- [ ] Communicate release to stakeholders" >> $GITHUB_STEP_SUMMARY
+
+    - name: Send deployment notification
+      run: |
+        echo "Deployment notification would be sent here"
+        echo "Integration options: Slack, Discord, Email, etc."
+        
+        # Exemple d'intégration Slack:
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"🚀 Blood Donation App ${{ github.event.inputs.version_tag }} deployed to ${{ github.event.inputs.deploy_target }}"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Check overall deployment status
+      run: |
+        GOOGLE_PLAY_RESULT="${{ needs.deploy-google-play.result }}"
+        APP_STORE_RESULT="${{ needs.deploy-app-store.result }}"
+        FIREBASE_RESULT="${{ needs.deploy-firebase.result }}"
+        
+        echo "Google Play: $GOOGLE_PLAY_RESULT"
+        echo "App Store: $APP_STORE_RESULT"
+        echo "Firebase: $FIREBASE_RESULT"
+        
+        # Considérer le déploiement comme réussi si au moins un target a réussi
+        if [ "$GOOGLE_PLAY_RESULT" = "success" ] || [ "$APP_STORE_RESULT" = "success" ] || [ "$FIREBASE_RESULT" = "success" ]; then
+          echo "✅ At least one deployment target succeeded"
+        elif [ "$GOOGLE_PLAY_RESULT" = "failure" ] || [ "$APP_STORE_RESULT" = "failure" ] || [ "$FIREBASE_RESULT" = "failure" ]; then
+          echo "❌ Some deployment targets failed"
+          exit 1
+        else
+          echo "ℹ️  No deployment jobs were executed (check configuration)"
+        fi

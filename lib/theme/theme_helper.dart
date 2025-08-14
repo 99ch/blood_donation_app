@@ -43,7 +43,7 @@ class ThemeHelper {
 
 /// Standard color scheme
 class ColorSchemes {
-  static final lightCodeColorScheme = ColorScheme.light();
+  static const lightCodeColorScheme = ColorScheme.light();
 }
 
 /// Full palette of custom app colors

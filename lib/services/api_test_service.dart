@@ -17,7 +17,7 @@ class ApiTestService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-      ).timeout(Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10));
 
       print('📊 Réponse du serveur: ${response.statusCode}');
       print('📄 Corps de la réponse: ${response.body}');
@@ -40,7 +40,7 @@ class ApiTestService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-      ).timeout(Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10));
 
       print('📊 Réponse GET auth: ${response.statusCode}');
       print('📄 Headers: ${response.headers}');
@@ -68,7 +68,7 @@ class ApiTestService {
             body: jsonEncode(
                 {'username': 'test@test.com', 'password': 'testpassword123'}),
           )
-          .timeout(Duration(seconds: 10));
+          .timeout(const Duration(seconds: 10));
 
       print('📊 Réponse login: ${response.statusCode}');
       print('📄 Corps: ${response.body}');
@@ -90,10 +90,10 @@ class ApiTestService {
     final results = <String, bool>{};
 
     results['connection'] = await testConnection();
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     results['auth_endpoint'] = await testAuthEndpoint();
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     results['login_test'] = await testLogin();
 

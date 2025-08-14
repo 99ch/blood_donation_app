@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # Flutter/Dart dependencies
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    target-branch: "develop"
+    reviewers:
+      - "99ch"
+    assignees:
+      - "99ch"
+    labels:
+      - "dependencies"
+      - "flutter"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    ignore:
+      # Ignore major version updates that might break compatibility
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    target-branch: "develop"
+    reviewers:
+      - "99ch"
+    assignees:
+      - "99ch"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"

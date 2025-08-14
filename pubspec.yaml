@@ -17,6 +17,7 @@ dependencies:
   url_launcher: ^6.2.5
   web: any
   http: ^1.2.1
+  flutter_dotenv: ^5.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -29,6 +30,7 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - .env
   fonts:
     - family: Manrope
       fonts:

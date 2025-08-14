@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../core/app_export.dart';
+import '../core/navigation_helper.dart';
 import './custom_image_view.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   final String currentRoute;
 
   const CustomBottomNavigation({
-    Key? key,
+    super.key,
     required this.currentRoute,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,25 +45,19 @@ class CustomBottomNavigation extends StatelessWidget {
                             context, AppRoutes.bloodDonationMenuScreen)),
                     _buildNavItem(context,
                         icon: ImageConstant.imgVectorGray600,
-                        isActive: false, onTap: () {
-                      // Handle appointments navigation
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Rendez-vous coming soon')));
-                    }),
+                        isActive: currentRoute == AppRoutes.appointmentsScreen,
+                        onTap: () => _navigateToScreen(
+                            context, AppRoutes.appointmentsScreen)),
                     _buildNavItem(context,
                         icon: ImageConstant.imgVectorGray60016x15,
-                        isActive: false, onTap: () {
-                      // Handle notifications navigation
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Notifications coming soon')));
-                    }),
+                        isActive: currentRoute == AppRoutes.notificationsScreen,
+                        onTap: () => _navigateToScreen(
+                            context, AppRoutes.notificationsScreen)),
                     _buildNavItem(context,
                         icon: ImageConstant.imgVector16x15,
-                        isActive: false, onTap: () {
-                      // Handle profile navigation
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Profile coming soon')));
-                    }),
+                        isActive: currentRoute == AppRoutes.profileScreen,
+                        onTap: () => _navigateToScreen(
+                            context, AppRoutes.profileScreen)),
                   ])),
           Container(
               height: 12.h,
@@ -77,18 +72,18 @@ class CustomBottomNavigation extends StatelessWidget {
                             currentRoute == AppRoutes.bloodDonationMenuScreen,
                         onTap: () => _navigateToScreen(
                             context, AppRoutes.bloodDonationMenuScreen)),
-                    _buildNavLabel('Rendez-vous', isActive: false, onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Rendez-vous coming soon')));
-                    }),
-                    _buildNavLabel('Notifications', isActive: false, onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Notifications coming soon')));
-                    }),
-                    _buildNavLabel('Profile', isActive: false, onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Profile coming soon')));
-                    }),
+                    _buildNavLabel('Rendez-vous',
+                        isActive: currentRoute == AppRoutes.appointmentsScreen,
+                        onTap: () => _navigateToScreen(
+                            context, AppRoutes.appointmentsScreen)),
+                    _buildNavLabel('Notifications',
+                        isActive: currentRoute == AppRoutes.notificationsScreen,
+                        onTap: () => _navigateToScreen(
+                            context, AppRoutes.notificationsScreen)),
+                    _buildNavLabel('Profile',
+                        isActive: currentRoute == AppRoutes.profileScreen,
+                        onTap: () => _navigateToScreen(
+                            context, AppRoutes.profileScreen)),
                   ])),
         ]));
   }
@@ -120,7 +115,8 @@ class CustomBottomNavigation extends StatelessWidget {
 
   void _navigateToScreen(BuildContext context, String routeName) {
     if (currentRoute != routeName) {
-      Navigator.of(context).pushReplacementNamed(routeName);
+      // Utiliser NavigationHelper pour une navigation cohérente
+      NavigationHelper.replaceTo(context, routeName);
     }
   }
 }

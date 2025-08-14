@@ -1,0 +1,174 @@
+name: 🐛 Bug Report
+description: Signaler un bug dans l'application Blood Donation App
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: ["99ch"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de signaler ce bug. Plus vous fournirez d'informations détaillées, plus nous pourrons le résoudre rapidement.
+
+  - type: input
+    id: app-version
+    attributes:
+      label: Version de l'application
+      description: Quelle version de l'app utilisez-vous ?
+      placeholder: "ex: v1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plateforme
+      description: Sur quelle plateforme le bug se produit-il ?
+      options:
+        - Android
+        - iOS
+        - Les deux
+        - Web (si applicable)
+    validations:
+      required: true
+
+  - type: input
+    id: device-info
+    attributes:
+      label: Informations de l'appareil
+      description: Quel appareil et version d'OS utilisez-vous ?
+      placeholder: "ex: iPhone 14, iOS 16.5 ou Samsung Galaxy S21, Android 13"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description du bug
+      description: Décrivez clairement le problème rencontré
+      placeholder: "Décrivez ce qui s'est passé..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Étapes pour reproduire
+      description: Comment reproduire ce bug ?
+      placeholder: |
+        1. Aller à '...'
+        2. Cliquer sur '...'
+        3. Faire défiler jusqu'à '...'
+        4. Voir l'erreur
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Comportement attendu
+      description: Qu'est-ce qui devrait se passer normalement ?
+      placeholder: "Décrivez le comportement attendu..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Comportement actuel
+      description: Qu'est-ce qui se passe actuellement ?
+      placeholder: "Décrivez ce qui se passe réellement..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Gravité
+      description: Quelle est la gravité de ce bug ?
+      options:
+        - 🔴 Critique (app crash, perte de données)
+        - 🟠 Haute (fonctionnalité principale cassée)
+        - 🟡 Moyenne (fonctionnalité secondaire affectée)
+        - 🟢 Faible (problème cosmétique)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Fréquence
+      description: À quelle fréquence ce bug se produit-il ?
+      options:
+        - Toujours (100%)
+        - Souvent (> 50%)
+        - Parfois (25-50%)
+        - Rarement (< 25%)
+        - Une seule fois
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Logs d'erreur
+      description: Si vous avez des logs d'erreur ou messages d'erreur, copiez-les ici
+      placeholder: "Collez les logs d'erreur ici..."
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Captures d'écran
+      description: Si applicable, ajoutez des captures d'écran pour expliquer le problème
+      placeholder: "Glissez-déposez vos images ici ou collez les liens..."
+
+  - type: dropdown
+    id: network-status
+    attributes:
+      label: État du réseau
+      description: Quel était l'état de votre connexion réseau ?
+      options:
+        - WiFi stable
+        - WiFi instable
+        - Données mobiles 4G/5G
+        - Données mobiles 3G
+        - Pas de réseau
+        - Non applicable
+
+  - type: input
+    id: api-endpoint
+    attributes:
+      label: URL API (si applicable)
+      description: Si le bug est lié à l'API, quelle URL utilisez-vous ?
+      placeholder: "ex: http://127.0.0.1:8000/api ou https://api.blooddonation.com/api"
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Veuillez confirmer que vous avez effectué ces vérifications
+      options:
+        - label: J'ai vérifié qu'il n'y a pas déjà un issue similaire
+          required: true
+        - label: J'ai testé avec la dernière version de l'app
+          required: true
+        - label: J'ai redémarré l'application
+          required: false
+        - label: J'ai vérifié ma connexion réseau
+          required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Contexte supplémentaire
+      description: Ajoutez toute autre information qui pourrait aider à comprendre le problème
+      placeholder: "Toute information supplémentaire utile..."
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        💡 **Conseil** : Plus vous fournirez d'informations détaillées, plus nous pourrons résoudre le problème rapidement !
+        
+        Merci de contribuer à l'amélioration de l'application Blood Donation App ! ❤️

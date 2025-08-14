@@ -5,7 +5,7 @@ import '../core/app_export.dart';
 /// CustomButton - Un bouton personnalisable avec support pour variantes `elevated` et `outlined`.
 class CustomButton extends StatelessWidget {
   const CustomButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.variant = CustomButtonVariant.elevated,
@@ -21,7 +21,7 @@ class CustomButton extends StatelessWidget {
     this.isEnabled = true,
     this.buttonStyle,
     this.buttonTextStyle,
-  }) : super(key: key);
+  });
 
   final String text;
   final VoidCallback? onPressed;
@@ -43,7 +43,7 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final buttonWidth = isFullWidth ? double.infinity : (width ?? 335.h);
     final buttonHeight = height ?? 44.h;
-    final radius = this.borderRadius ?? 8.h;
+    final radius = borderRadius ?? 8.h;
 
     final effectiveTextStyle = TextStyle(
       fontSize: fontSize ?? 14.fSize,

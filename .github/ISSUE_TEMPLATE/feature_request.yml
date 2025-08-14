@@ -1,0 +1,209 @@
+name: ✨ Feature Request
+description: Proposer une nouvelle fonctionnalité pour l'application Blood Donation App
+title: "[FEATURE] "
+labels: ["enhancement", "needs-triage"]
+assignees: ["99ch"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de proposer une nouvelle fonctionnalité ! Vos idées nous aident à améliorer l'application Blood Donation App.
+
+  - type: input
+    id: feature-title
+    attributes:
+      label: Titre de la fonctionnalité
+      description: Un titre court et descriptif pour votre fonctionnalité
+      placeholder: "ex: Notifications push pour les campagnes urgentes"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Catégorie
+      description: Dans quelle catégorie cette fonctionnalité s'inscrit-elle ?
+      options:
+        - 🔐 Authentification & Sécurité
+        - 👤 Gestion des profils
+        - 🏥 Centres de collecte
+        - 🎯 Campagnes de don
+        - 🏆 Système de badges/récompenses
+        - 📊 Suivi médical
+        - 📱 Interface utilisateur (UI/UX)
+        - 🔧 Configuration/Paramètres
+        - 📈 Statistiques/Analytics
+        - 🔔 Notifications
+        - 🌐 Intégration API/Backend
+        - ♿ Accessibilité
+        - 🌍 Internationalisation
+        - 🎨 Thème/Design
+        - 🔄 Autre
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Problème à résoudre
+      description: Quel problème cette fonctionnalité résoudrait-elle ? Pourquoi est-elle nécessaire ?
+      placeholder: "Décrivez le problème ou le besoin que cette fonctionnalité adresserait..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Solution proposée
+      description: Comment voyez-vous cette fonctionnalité ? Décrivez votre vision en détail.
+      placeholder: "Décrivez votre solution idéale..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-stories
+    attributes:
+      label: User Stories
+      description: Décrivez comment les utilisateurs interagiraient avec cette fonctionnalité
+      placeholder: |
+        - En tant que donneur, je veux pouvoir... afin de...
+        - En tant qu'administrateur, je veux pouvoir... afin de...
+        - En tant qu'utilisateur mobile, je veux pouvoir... afin de...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups-wireframes
+    attributes:
+      label: Maquettes/Wireframes
+      description: Si vous avez des maquettes, wireframes ou sketches, partagez-les ici
+      placeholder: "Glissez-déposez vos images ou dessins ici..."
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      description: Quelle priorité accordez-vous à cette fonctionnalité ?
+      options:
+        - 🔴 Critique (indispensable)
+        - 🟠 Haute (très importante)
+        - 🟡 Moyenne (utile)
+        - 🟢 Faible (nice-to-have)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-users
+    attributes:
+      label: Utilisateurs cibles
+      description: Qui bénéficierait principalement de cette fonctionnalité ?
+      options:
+        - Donneurs réguliers
+        - Nouveaux donneurs
+        - Personnel médical
+        - Administrateurs
+        - Organisateurs de campagnes
+        - Tous les utilisateurs
+        - Utilisateurs avec besoins spéciaux
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: platforms
+    attributes:
+      label: Plateformes concernées
+      description: Sur quelles plateformes cette fonctionnalité devrait-elle être disponible ?
+      options:
+        - label: Android
+        - label: iOS
+        - label: Web (si applicable)
+        - label: Backend API
+
+  - type: textarea
+    id: technical-considerations
+    attributes:
+      label: Considérations techniques
+      description: Y a-t-il des aspects techniques particuliers à considérer ?
+      placeholder: |
+        - Intégrations nécessaires (APIs externes, services...)
+        - Impact sur les performances
+        - Sécurité et confidentialité
+        - Compatibilité avec l'existant
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Solutions alternatives
+      description: Avez-vous considéré d'autres approches pour résoudre ce problème ?
+      placeholder: "Décrivez d'autres solutions possibles..."
+
+  - type: input
+    id: similar-apps
+    attributes:
+      label: Références
+      description: Connaissez-vous d'autres apps qui implémentent quelque chose de similaire ?
+      placeholder: "ex: App X fait cela de cette manière..."
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Critères d'acceptation
+      description: Comment saurons-nous que cette fonctionnalité est terminée et fonctionne correctement ?
+      placeholder: |
+        - [ ] L'utilisateur peut...
+        - [ ] Le système affiche...
+        - [ ] Les données sont sauvegardées...
+        - [ ] L'interface respecte...
+
+  - type: dropdown
+    id: complexity-estimate
+    attributes:
+      label: Estimation de complexité
+      description: Selon vous, quelle est la complexité de cette fonctionnalité ?
+      options:
+        - 🟢 Simple (quelques heures)
+        - 🟡 Moyenne (quelques jours)
+        - 🟠 Complexe (quelques semaines)
+        - 🔴 Très complexe (plusieurs semaines/mois)
+        - 🤷 Je ne sais pas
+
+  - type: textarea
+    id: impact-analysis
+    attributes:
+      label: Analyse d'impact
+      description: Quel impact cette fonctionnalité aurait-elle sur l'app existante ?
+      placeholder: |
+        - Impact positif sur l'expérience utilisateur
+        - Amélioration des métriques (engagement, rétention...)
+        - Impact sur les performances
+        - Changements nécessaires dans d'autres parties de l'app
+
+  - type: checkboxes
+    id: requirements
+    attributes:
+      label: Prérequis
+      description: Cette fonctionnalité nécessite-t-elle des prérequis particuliers ?
+      options:
+        - label: Modifications backend/API
+        - label: Nouvelles permissions
+        - label: Intégrations tierces
+        - label: Migrations de données
+        - label: Mise à jour des politiques de confidentialité
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Contexte supplémentaire
+      description: Toute autre information qui pourrait être utile
+      placeholder: "Ajoutez ici toute information supplémentaire pertinente..."
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        💡 **Merci pour votre contribution !**
+        
+        Votre proposition sera évaluée par l'équipe de développement. Nous vous tiendrons informé de l'avancement.
+        
+        N'hésitez pas à participer aux discussions et à proposer des améliorations ! 🩸❤️

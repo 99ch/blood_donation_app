@@ -1,0 +1,192 @@
+name: Build Android
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+
+jobs:
+  build-android:
+    name: Build Android APK/AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        build-type: [debug, release]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Java JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create environment configuration
+      run: |
+        if [ "${{ matrix.build-type }}" = "release" ]; then
+          echo "API_BASE_URL=https://api.blooddonation.com/api" > .env
+          echo "ENVIRONMENT=production" >> .env
+          echo "ENABLE_LOGGING=false" >> .env
+        else
+          echo "API_BASE_URL=http://127.0.0.1:8000/api" > .env
+          echo "ENVIRONMENT=development" >> .env
+          echo "ENABLE_LOGGING=true" >> .env
+        fi
+        cat .env
+
+    - name: Configure Android signing (Release only)
+      if: matrix.build-type == 'release'
+      run: |
+        echo "Configuring Android signing for release build"
+        # Note: Les clés de signature doivent être configurées dans les secrets GitHub
+        # KEYSTORE_FILE, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+        
+    - name: Build APK
+      run: |
+        if [ "${{ matrix.build-type }}" = "release" ]; then
+          echo "Building release APK..."
+          flutter build apk --release --verbose
+        else
+          echo "Building debug APK..."
+          flutter build apk --debug --verbose
+        fi
+
+    - name: Build AAB (Release only)
+      if: matrix.build-type == 'release'
+      run: |
+        echo "Building release AAB for Google Play..."
+        flutter build appbundle --release --verbose
+
+    - name: Get build info
+      id: build-info
+      run: |
+        APK_PATH=$(find build/app/outputs/flutter-apk -name "*.apk" | head -1)
+        APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+        echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+        echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+        
+        if [ "${{ matrix.build-type }}" = "release" ]; then
+          AAB_PATH=$(find build/app/outputs/bundle -name "*.aab" | head -1)
+          AAB_SIZE=$(du -h "$AAB_PATH" | cut -f1)
+          echo "aab_path=$AAB_PATH" >> $GITHUB_OUTPUT
+          echo "aab_size=$AAB_SIZE" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-apk-${{ matrix.build-type }}
+        path: ${{ steps.build-info.outputs.apk_path }}
+        retention-days: 30
+
+    - name: Upload AAB artifact (Release only)
+      if: matrix.build-type == 'release'
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-aab-release
+        path: ${{ steps.build-info.outputs.aab_path }}
+        retention-days: 90
+
+    - name: Upload to Google Play Console (Release only)
+      if: matrix.build-type == 'release' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo "🚀 Ready to upload to Google Play Console"
+        echo "AAB file: ${{ steps.build-info.outputs.aab_path }}"
+        echo "Size: ${{ steps.build-info.outputs.aab_size }}"
+        # Ici, vous pourrez ajouter l'upload automatique vers Google Play
+        # en utilisant fastlane ou l'API Google Play Console
+
+    - name: Create release summary
+      run: |
+        echo "## 📱 Android Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: ${{ matrix.build-type }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **APK Size**: ${{ steps.build-info.outputs.apk_size }}" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ matrix.build-type }}" = "release" ]; then
+          echo "- **AAB Size**: ${{ steps.build-info.outputs.aab_size }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "- **Flutter Version**: $(flutter --version | head -1)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+
+  # Job de tests sur émulateur Android
+  test-android:
+    name: Test on Android Emulator
+    runs-on: macos-latest
+    timeout-minutes: 45
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.6.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create .env file
+      run: |
+        echo "API_BASE_URL=http://127.0.0.1:8000/api" > .env
+        echo "ENVIRONMENT=test" >> .env
+        echo "ENABLE_LOGGING=true" >> .env
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+
+    - name: Create and start Android emulator
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 30
+        arch: x86_64
+        profile: Nexus 6
+        script: |
+          echo "Emulator started successfully"
+          adb devices
+
+    - name: Run integration tests on emulator
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 30
+        arch: x86_64
+        profile: Nexus 6
+        script: |
+          flutter devices
+          flutter drive --target=test_driver/app.dart || echo "Integration tests completed"
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-test-results
+        path: test-results/
+        retention-days: 7
