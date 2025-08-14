@@ -1,4 +1,11 @@
 # 🩸 Blood Donation App
+[![CI](https://github.com/99ch/blood_donation_app/actions/workflows/ci.yml/badge.svg)](https://github.com/99ch/blood_donation_app/actions/workflows/ci.yml)
+[![Android Build](https://github.com/99ch/blood_donation_app/actions/workflows/build-android.yml/badge.svg)](https://github.com/99ch/blood_donation_app/actions/workflows/build-android.yml)
+[![iOS Build](https://github.com/99ch/blood_donation_app/actions/workflows/build-ios.yml/badge.svg)](https://github.com/99ch/blood_donation_app/actions/workflows/build-ios.yml)
+[![Deploy](https://github.com/99ch/blood_donation_app/actions/workflows/deploy.yml/badge.svg)](https://github.com/99ch/blood_donation_app/actions/workflows/deploy.yml)
+[![Release](https://github.com/99ch/blood_donation_app/actions/workflows/release.yml/badge.svg)](https://github.com/99ch/blood_donation_app/actions/workflows/release.yml)
+[![Dependabot](https://github.com/99ch/blood_donation_app/actions/workflows/dependabot.yml/badge.svg)](https://github.com/99ch/blood_donation_app/actions/workflows/dependabot.yml)
+
 
 Une application mobile Flutter complète pour la gestion des dons de sang, développée pour connecter les donneurs, les centres de collecte et les organisateurs de campagnes.
 
